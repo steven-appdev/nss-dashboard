@@ -12,7 +12,7 @@ header("Content-Type: application/json; charset=UTF-8");
 
 //Generate the appropriate webpage depending on the path requested
 switch($request->getPath()){
-    case 'test':
+    case 'access':
         $access = new Access();
         break;
 }

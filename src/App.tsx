@@ -1,37 +1,22 @@
-import React, {useEffect, useState} from 'react';
-import logo from './logo.svg';
+import React, {useState} from 'react';
 import './App.css';
-import axios from "axios";
+import './tail.css';
+import Options from './components/options';
+import Positive from './components/positive';
 
-interface Provider{
-  provider: string;
-}
+export default function App() {
 
-function App() {
-
-  const api = axios.create({
-    baseURL: "https://w20003691.nuwebspace.co.uk/api/",
+  const [option, setOption] = useState<{[key: string]: string}>({
+    qdrop: "all",
+    popdrop: "registered",
+    modedrop: "all",
+    leveldrop: "all"
   });
-
-  const [providers, setProviders] = useState<Provider[]>([]);
-
-  useEffect(() => {
-      const fetchProvider = async () => {
-        let response = await api.get<Provider[]>("test");
-        setProviders(response.data);
-        console.log(response.data);
-      };
-      fetchProvider();
-      
-  }, []);
 
   return (
     <div className="App">
-      {providers.map((data) =>(
-          <p>{data.provider}</p>
-        ))}
+      <Options onChange={setOption}/>
+      <Positive currentLevel={option["leveldrop"]} />
     </div>
   );
 }
-
-export default App;
