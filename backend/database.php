@@ -28,13 +28,12 @@ class Database
 
             //Bind and execute the query
             $stmt->execute($params);
-
             //Return the result
             return $stmt;
 
         }catch(PDOException $pdo){
             //Return false if PDOException are caught
-            return false;
+            return $pdo;
         }
     }
 }

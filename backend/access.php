@@ -17,6 +17,20 @@ class Access extends APIResponse
                     $result = $this->RetrieveAllQuestions($db);
                 }else if(isset($_REQUEST['positives'])){
                     $result = $this->RetrievePositives($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level']);
+                }else if(isset($_REQUEST['test'])){
+                    $upload_max_size = ini_get('upload_max_filesize');
+                    $result = ["result" => $upload_max_size];
+                }
+                $this->setResponse($result);
+            }
+            catch(Exception $e)
+            {
+                $this->setResponse(["err" => $e]);
+            }
+        }else if ($_SERVER['REQUEST_METHOD'] === 'POST'){
+            try{
+                if(isset($_REQUEST['upload'])){
+                    $result = $this->UploadFile($db, $_FILES["file"]["tmp_name"]);
                 }
                 $this->setResponse($result);
             }
@@ -28,6 +42,38 @@ class Access extends APIResponse
 
         //Display the response in JSON format
         echo json_encode($this->getResponse());
+    }
+
+    private function UploadFile($db, $file)
+    {
+        $result = "";
+        $file = fopen($file,"r");
+        $query = "INSERT INTO test_data 
+                    (NUM, POPULATION, UKPRN, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, SUBJECT_LEVEL, 
+                    CAH_CODE, CAH_NAME, QUESTION_NUMBER, NUMBER_RESPONSES, NUMBER_POPULATION, SUPPRESSION_REASON, 
+                    OPTION1, OPTION2, OPTION3, OPTION4, OPTION5, NOT_APPLICABLE, POSITIVITY_MEASURE, STANDARD_DEVIATION, 
+                    BENCHMARK, DIFFERENCE, contr_benchmark, MATERIALLY_BELOW_BENCH, INLINE_WITH_BENCH, MATERIALLY_ABOVE_BENCH, 
+                    DIFFERENCE_LOWERCI99, DIFFERENCE_LOWERCI97, DIFFERENCE_LOWERCI95, DIFFERENCE_LOWERCI92, DIFFERENCE_LOWERCI90, 
+                    DIFFERENCE_LOWERCI87, DIFFERENCE_LOWERCI85, DIFFERENCE_LOWERCI82, DIFFERENCE_LOWERCI80, DIFFERENCE_LOWERCI77, 
+                    DIFFERENCE_LOWERCI75, DIFFERENCE_UPPERCI99, DIFFERENCE_UPPERCI97, DIFFERENCE_UPPERCI95, DIFFERENCE_UPPERCI92, 
+                    DIFFERENCE_UPPERCI90, DIFFERENCE_UPPERCI87, DIFFERENCE_UPPERCI85, DIFFERENCE_UPPERCI82, DIFFERENCE_UPPERCI80, 
+                    DIFFERENCE_UPPERCI77, DIFFERENCE_UPPERCI75, INDICATOR_LOWERCI99, INDICATOR_LOWERCI97, INDICATOR_LOWERCI95, 
+                    INDICATOR_LOWERCI92, INDICATOR_LOWERCI90, INDICATOR_LOWERCI87, INDICATOR_LOWERCI85, INDICATOR_LOWERCI82, 
+                    INDICATOR_LOWERCI80, INDICATOR_LOWERCI77, INDICATOR_LOWERCI75, INDICATOR_UPPERCI99, INDICATOR_UPPERCI97, 
+                    INDICATOR_UPPERCI95, INDICATOR_UPPERCI92, INDICATOR_UPPERCI90, INDICATOR_UPPERCI87, INDICATOR_UPPERCI85, 
+                    INDICATOR_UPPERCI82, INDICATOR_UPPERCI80, INDICATOR_UPPERCI77, INDICATOR_UPPERCI75, PUB_RESPONSE_HEADCOUNT, PUB_RESPRATE)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        while(($line = fgetcsv($file))!== FALSE){
+            foreach($line as $key => $value){
+                if($value === "NULL")
+                {
+                    $line[$key] = null;
+                }
+            }
+            $result = $db->executeSQL($query, $line);
+        }
+        fclose($file);
+        return $result;      
     }
 
     private function RetrieveAllProviders($db)

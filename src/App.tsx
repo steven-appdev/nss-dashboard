@@ -17,6 +17,7 @@ export default function App() {
     <div className="App flex flex-col h-screen">
       <Options onChange={setOption}/>
       <Positive question={option["qdrop"]} population={option["popdrop"]} mode={option["modedrop"]} level={option["leveldrop"]} />
+      
     </div>
   );
 }

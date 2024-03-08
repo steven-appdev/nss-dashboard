@@ -46,21 +46,21 @@ export default function Positive({question, population, mode, level}:PositivePro
             <table className="text-sm w-full">
                 <thead>
                     <tr className="bg-slate-300 sticky top-0">
-                        <th className="border-b dark:border-slate-600 font-medium text-slate-700 dark:text-slate-200 py-4 w-[10%]">Question ID</th>
-                        <th className="border-b dark:border-slate-600 font-medium text-slate-700 dark:text-slate-200 py-4">Question</th>
-                        <th className="border-b dark:border-slate-600 font-medium text-slate-700 dark:text-slate-200 py-4 w-[10%]">Positivity Measure (%)</th>
-                        <th className="border-b dark:border-slate-600 font-medium text-slate-700 dark:text-slate-200 py-4 w-[10%]">Rank</th>
-                        <th className="border-b dark:border-slate-600 font-medium text-slate-700 dark:text-slate-200 py-4 w-[10%]">Rank (%)</th>
+                        <th className="border-b font-medium text-slate-700 py-4 w-[10%]">Question ID</th>
+                        <th className="border-b font-medium text-slate-700 py-4">Question</th>
+                        <th className="border-b font-medium text-slate-700 py-4 w-[10%]">Positivity Measure (%)</th>
+                        <th className="border-b font-medium text-slate-700 py-4 w-[10%]">Rank</th>
+                        <th className="border-b font-medium text-slate-700 py-4 w-[10%]">Rank (%)</th>
                     </tr>
                 </thead>
                 <tbody>
                     {data?.map((item) =>(
                         <tr className="even:bg-slate-100">
-                            <td className="p-4 pl-8 text-slate-600 dark:text-slate-400">{item.qid}</td>
-                            <td className="p-4 pl-8 text-slate-600 dark:text-slate-400">{item.qtext}</td>
-                            <td className={`border border-slate-100 dark:border-slate-700 p-4 ${getColorCode(item.rank_percentage)}`}>{item.positivity}</td>
-                            <td className={`border border-slate-100 dark:border-slate-700 p-4 ${getColorCode(item.rank_percentage)}`}>{item.rank}</td>
-                            <td className={`border border-slate-100 dark:border-slate-700 p-4 ${getColorCode(item.rank_percentage)}`}>{item.rank_percentage}</td>
+                            <td className="p-4 pl-8 text-slate-600">{item.qid}</td>
+                            <td className="p-4 pl-8 text-slate-600">{item.qtext}</td>
+                            <td className={`border border-slate-100 p-4 ${getColorCode(item.rank_percentage)}`}>{item.positivity}</td>
+                            <td className={`border border-slate-100 p-4 ${getColorCode(item.rank_percentage)}`}>{item.rank}</td>
+                            <td className={`border border-slate-100 p-4 ${getColorCode(item.rank_percentage)}`}>{item.rank_percentage}</td>
                         </tr>
                     ))}
                 </tbody>

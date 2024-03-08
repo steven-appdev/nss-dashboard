@@ -29,9 +29,7 @@ export default function Options({onChange}:Props){
     }, []);
 
     useEffect(() => {
-        if(onChange){
-            onChange(selectedOptions);
-        }
+        if(onChange){onChange(selectedOptions);}
     },[selectedOptions])
 
     const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
