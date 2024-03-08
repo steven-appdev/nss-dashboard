@@ -71,22 +71,44 @@ class Access extends APIResponse
 
     private function RetrievePositives($db, $population, $mode, $level)
     {
-        $query = "SELECT POPULATION, MODE_OF_STUDY, LEVEL_OF_STUDY, GROUP_CONCAT(POSITIVITY_MEASURE) as POSITIVITY  
-                  FROM nss_data 
-                  WHERE PROVIDER_NAME ='University of Northumbria at Newcastle' 
-                  AND POPULATION = :population
-                  AND MODE_OF_STUDY = :mode
-                  AND LEVEL_OF_STUDY = :level
-                  GROUP BY POPULATION, MODE_OF_STUDY, LEVEL_OF_STUDY";
+        $resultArr = [];
+        $query = "WITH POSITIVE_RANK AS (
+                        SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE,
+                                RANK() OVER (PARTITION BY QUESTION_NUMBER ORDER BY POSITIVITY_MEASURE DESC) AS RANKING,
+                                COUNT(*) OVER (PARTITION BY QUESTION_NUMBER) AS TOTAL_PROVIDER
+                        FROM    nss_data
+                        WHERE   POPULATION = :population
+                        AND     MODE_OF_STUDY = :mode
+                        AND     LEVEL_OF_STUDY = :level
+                        AND     PROVIDER_NAME NOT IN ('UK','England','Northern Ireland','Scotland','Wales')
+                    )
+                    SELECT  pr.POPULATION, pr.MODE_OF_STUDY, pr.LEVEL_OF_STUDY, pr.QUESTION_NUMBER, q.qtext AS QUESTION_TEXT,
+                            pr.POSITIVITY_MEASURE AS POSITIVITY,
+                            pr.RANKING AS POSITIVITY_RANK,
+                            ROUND(100-((pr.RANKING * 100)/pr.TOTAL_PROVIDER)) AS RANK_PERCENTAGE
+                    FROM    POSITIVE_RANK pr,
+                            nss_question q
+                    WHERE   pr.QUESTION_NUMBER = q.qid
+                    AND     PROVIDER_NAME = 'University of Northumbria at Newcastle'";
+
         $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level)];
-        $result = $db->executeSQL($query, $parameter)->fetch(PDO::FETCH_ASSOC);
+        $result = $db->executeSQL($query, $parameter)->fetchAll();
         if(!empty($result))
         {
+            foreach($result as $data){
+                array_push($resultArr, [
+                    "qid" => $data['QUESTION_NUMBER'],
+                    "qtext" => $data['QUESTION_TEXT'],
+                    "positivity" => $data['POSITIVITY'],
+                    "rank" =>$data['POSITIVITY_RANK'],
+                    "rank_percentage" => $data['RANK_PERCENTAGE']
+                ]);
+            }
             return [
-                "population" => $result['POPULATION'],
-                "mode" => $result['MODE_OF_STUDY'],
-                "level" => $result['LEVEL_OF_STUDY'],
-                "percentage" => explode(",",$result['POSITIVITY'])
+                "population" => $result[0]['POPULATION'],
+                "mode" => $result[0]['MODE_OF_STUDY'],
+                "level" => $result[0]['LEVEL_OF_STUDY'],
+                "results" => $resultArr
             ];
         }
         else

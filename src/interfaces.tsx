@@ -13,9 +13,17 @@ interface IPositive{
     population: string,
     mode: string,
     level: string,
-    percentage: number[]
+    results: IPositiveResult[]
+}
+
+interface IPositiveResult{
+    qid: string
+    qtext: string
+    positivity: number,
+    rank: number,
+    rank_percentage: number
 }
 
 export type{
-    IProvider, IQuestion, IPositive
+    IProvider, IQuestion, IPositive, IPositiveResult
 }
