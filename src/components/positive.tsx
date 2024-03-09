@@ -56,8 +56,8 @@ export default function Positive({question, population, mode, level}:PositivePro
                 <tbody>
                     {data?.map((item) =>(
                         <tr className="even:bg-slate-100">
-                            <td className="p-4 pl-8 text-slate-600">{item.qid}</td>
-                            <td className="p-4 pl-8 text-slate-600">{item.qtext}</td>
+                            <td className="p-4 text-slate-600">{item.qid}</td>
+                            <td className="p-4 text-slate-600">{item.qtext}</td>
                             <td className={`border border-slate-100 p-4 ${getColorCode(item.rank_percentage)}`}>{item.positivity}</td>
                             <td className={`border border-slate-100 p-4 ${getColorCode(item.rank_percentage)}`}>{item.rank}</td>
                             <td className={`border border-slate-100 p-4 ${getColorCode(item.rank_percentage)}`}>{item.rank_percentage}</td>
