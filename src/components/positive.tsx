@@ -16,14 +16,12 @@ export default function Positive({question, population, mode, level}:PositivePro
         baseURL: "https://w20003691.nuwebspace.co.uk/api/access",
     });
 
-    const [result, setResult] = useState<IPositive>()
     const [data, setData] = useState<IPositiveResult[]>()
 
     useEffect(() => {
         const fetchPositives = async () => {
             let request = "?positives&population="+population+"&mode="+mode+"&level="+level
             let response = await api.get<IPositive>(request);
-            setResult(response.data);
             setData(question === "all" ? response.data.results : response.data.results.filter(item => item.qid === question));
         };
         fetchPositives();
