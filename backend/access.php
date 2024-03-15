@@ -17,6 +17,8 @@ class Access extends APIResponse
                     $result = $this->RetrieveAllQuestions($db);
                 }else if(isset($_REQUEST['positives'])){
                     $result = $this->RetrievePositives($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level']);
+                }else if(isset($_REQUEST['quartdiff'])){
+                    $result = $this->RetrieveQuartileDiff($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q']);   
                 }else if(isset($_REQUEST['test'])){
                     $upload_max_size = ini_get('upload_max_filesize');
                     $result = ["result" => $upload_max_size];
@@ -160,6 +162,67 @@ class Access extends APIResponse
         else
         {
             throw new Exception("No content found!");
+        }
+    }
+
+    private function RetrieveQuartileDiff($db, $population, $mode, $level, $question)
+    {
+        $query = "WITH 
+                    POSITIVE_RANK AS (
+                        SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE,
+                        ROUND(100-((RANK() OVER (PARTITION BY QUESTION_NUMBER ORDER BY POSITIVITY_MEASURE DESC) * 100)/COUNT(*) OVER (PARTITION BY QUESTION_NUMBER))) AS 	
+                        RANK_PERCENTAGE
+                        FROM    nss_data
+                        WHERE   POPULATION = :population
+                        AND     MODE_OF_STUDY = :mode
+                        AND     LEVEL_OF_STUDY = :level
+                        AND     PROVIDER_NAME NOT IN ('UK','England','Northern Ireland','Scotland','Wales')
+                    ),
+                    POSITIVE_QUARTILE AS (
+                        SELECT 	*,
+                                CASE
+                                    WHEN RANK_PERCENTAGE >= 75 THEN '1'
+                                    WHEN RANK_PERCENTAGE >= 50 THEN '2'
+                                    WHEN RANK_PERCENTAGE >= 24 THEN '3'
+                                    ELSE '4'
+                                END AS QUARTILE
+                        FROM POSITIVE_RANK
+                        WHERE QUESTION_NUMBER = :question
+                    )
+                    SELECT  pq.QUESTION_NUMBER, q.qtext, pq.POSITIVITY_MEASURE, pq.QUARTILE,
+                            pq.POSITIVITY_MEASURE - ( SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '1' ) AS DIFFERENCE_Q1_MIN,
+                            pq.POSITIVITY_MEASURE - ( SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '1' ) AS DIFFERENCE_Q1_MAX,
+                            pq.POSITIVITY_MEASURE - ( SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '2' ) AS DIFFERENCE_Q2_MIN,
+                            pq.POSITIVITY_MEASURE - ( SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '2' ) AS DIFFERENCE_Q2_MAX,
+                            pq.POSITIVITY_MEASURE - ( SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '3' ) AS DIFFERENCE_Q3_MIN,
+                            pq.POSITIVITY_MEASURE - ( SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '3' ) AS DIFFERENCE_Q3_MAX,
+                            pq.POSITIVITY_MEASURE - ( SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4' ) AS DIFFERENCE_Q4_MIN,
+                            pq.POSITIVITY_MEASURE - ( SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4' ) AS DIFFERENCE_Q4_MAX
+                    FROM    POSITIVE_QUARTILE pq,
+                            nss_question q
+                    WHERE   pq.QUESTION_NUMBER = q.qid
+                    AND		pq.PROVIDER_NAME = 'University of Northumbria at Newcastle';";
+
+        $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level), "question" => $question];
+        $result = $db->executeSQL($query, $parameter)->fetch(PDO::FETCH_ASSOC);
+        if(!empty($result))
+        {
+            return [
+                "qid" => $result['QUESTION_NUMBER'],
+                "qtext" => $result['qtext'],
+                "positive" => $result['POSITIVITY_MEASURE'],
+                "quartile" => $result['QUARTILE'],
+                "differences" => [
+                    "q1min" => $result['DIFFERENCE_Q1_MIN'],
+                    "q1max" => $result['DIFFERENCE_Q1_MAX'],
+                    "q2min" => $result['DIFFERENCE_Q2_MIN'],
+                    "q2max" => $result['DIFFERENCE_Q2_MAX'],
+                    "q3min" => $result['DIFFERENCE_Q3_MIN'],
+                    "q3max" => $result['DIFFERENCE_Q3_MAX'],
+                    "q4min" => $result['DIFFERENCE_Q4_MIN'],
+                    "q4max" => $result['DIFFERENCE_Q4_MAX']
+                ]
+            ];
         }
     }
 
