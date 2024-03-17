@@ -45,3 +45,7 @@
   border-width: 1px;
   border-color: red;
 }
+
+canvas {
+  width: 100% !important;
+}

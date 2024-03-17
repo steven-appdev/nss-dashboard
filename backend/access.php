@@ -181,10 +181,10 @@ class Access extends APIResponse
                     POSITIVE_QUARTILE AS (
                         SELECT 	*,
                                 CASE
-                                    WHEN RANK_PERCENTAGE >= 75 THEN '1'
-                                    WHEN RANK_PERCENTAGE >= 50 THEN '2'
-                                    WHEN RANK_PERCENTAGE >= 24 THEN '3'
-                                    ELSE '4'
+                                    WHEN RANK_PERCENTAGE >= 75 THEN 1
+                                    WHEN RANK_PERCENTAGE >= 50 THEN 2
+                                    WHEN RANK_PERCENTAGE >= 24 THEN 3
+                                    ELSE 4
                                 END AS QUARTILE
                         FROM POSITIVE_RANK
                         WHERE QUESTION_NUMBER = :question
@@ -207,21 +207,45 @@ class Access extends APIResponse
         $result = $db->executeSQL($query, $parameter)->fetch(PDO::FETCH_ASSOC);
         if(!empty($result))
         {
+            $diffArr = [[
+                "label" => "Q".$result['QUARTILE'],
+                "data" => [$result['POSITIVITY_MEASURE']],
+                "current" => true
+            ]];
+
+            if($result['QUARTILE'] == 1)
+            {
+                array_push($diffArr, [
+                    "label" => "Q1 Maximum",
+                    "data" => [abs($result['DIFFERENCE_Q1_MAX'])],
+                    "current" => false
+                ]);
+            }
+            else
+            {
+                $i = $result['QUARTILE']-1;
+                while($i != 0)
+                {
+                    array_push($diffArr, [
+                        "label" => "Value till Q".$i,
+                        "data" => [abs($result['DIFFERENCE_Q'.$i.'_MIN'])],
+                        "current" => false
+                    ]);
+                    array_push($diffArr, [
+                        "label" => "Q".$i." Maximum",
+                        "data" => [round(abs($result['DIFFERENCE_Q'.$i.'_MAX'])-abs($result['DIFFERENCE_Q'.$i.'_MIN']),2)],
+                        "current" => false
+                    ]);
+                    $i--;
+                }
+            }
+
             return [
                 "qid" => $result['QUESTION_NUMBER'],
                 "qtext" => $result['qtext'],
                 "positive" => $result['POSITIVITY_MEASURE'],
                 "quartile" => $result['QUARTILE'],
-                "differences" => [
-                    "q1min" => $result['DIFFERENCE_Q1_MIN'],
-                    "q1max" => $result['DIFFERENCE_Q1_MAX'],
-                    "q2min" => $result['DIFFERENCE_Q2_MIN'],
-                    "q2max" => $result['DIFFERENCE_Q2_MAX'],
-                    "q3min" => $result['DIFFERENCE_Q3_MIN'],
-                    "q3max" => $result['DIFFERENCE_Q3_MAX'],
-                    "q4min" => $result['DIFFERENCE_Q4_MIN'],
-                    "q4max" => $result['DIFFERENCE_Q4_MAX']
-                ]
+                "differences" => $diffArr
             ];
         }
     }
