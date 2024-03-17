@@ -19,7 +19,7 @@ export default function App() {
          <div className="mt-10 mx-10 h-[400px]">
             <div className="flex flex-row h-full">
                <div className="border rounded-md w-1/4 p-4 mr-1">
-
+                  /* Update to Emotion visualisation */
                </div>
                <div className="border rounded-md w-3/4 px-8 py-5 ml-1">
                   <Difference 
