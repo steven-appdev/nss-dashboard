@@ -190,14 +190,14 @@ class Access extends APIResponse
                         WHERE QUESTION_NUMBER = :question
                     )
                     SELECT  pq.QUESTION_NUMBER, q.qtext, pq.POSITIVITY_MEASURE, pq.QUARTILE,
-                            pq.POSITIVITY_MEASURE - ( SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '1' ) AS DIFFERENCE_Q1_MIN,
-                            pq.POSITIVITY_MEASURE - ( SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '1' ) AS DIFFERENCE_Q1_MAX,
-                            pq.POSITIVITY_MEASURE - ( SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '2' ) AS DIFFERENCE_Q2_MIN,
-                            pq.POSITIVITY_MEASURE - ( SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '2' ) AS DIFFERENCE_Q2_MAX,
-                            pq.POSITIVITY_MEASURE - ( SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '3' ) AS DIFFERENCE_Q3_MIN,
-                            pq.POSITIVITY_MEASURE - ( SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '3' ) AS DIFFERENCE_Q3_MAX,
-                            pq.POSITIVITY_MEASURE - ( SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4' ) AS DIFFERENCE_Q4_MIN,
-                            pq.POSITIVITY_MEASURE - ( SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4' ) AS DIFFERENCE_Q4_MAX
+                            (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '1') AS DIFFERENCE_Q1_MIN,
+                            (SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '1') AS DIFFERENCE_Q1_MAX,
+                            (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '2') AS DIFFERENCE_Q2_MIN,
+                            (SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '2') AS DIFFERENCE_Q2_MAX,
+                            (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '3') AS DIFFERENCE_Q3_MIN,
+                            (SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '3') AS DIFFERENCE_Q3_MAX,
+                            (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4') AS DIFFERENCE_Q4_MIN,
+                            (SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4') AS DIFFERENCE_Q4_MAX
                     FROM    POSITIVE_QUARTILE pq,
                             nss_question q
                     WHERE   pq.QUESTION_NUMBER = q.qid
@@ -207,37 +207,37 @@ class Access extends APIResponse
         $result = $db->executeSQL($query, $parameter)->fetch(PDO::FETCH_ASSOC);
         if(!empty($result))
         {
-            $diffArr = [[
-                "label" => "Q".$result['QUARTILE'],
-                "data" => [$result['POSITIVITY_MEASURE']],
-                "current" => true
-            ]];
+            $diffArr = [
+                [
+                    "label" => "Our Positive Measure at Q". $result['QUARTILE'],
+                    "data" => [$result['POSITIVITY_MEASURE']],
+                    "colorCode" => $result['QUARTILE']-1,
+                    "current" => true
+                ]
+            ];
 
-            if($result['QUARTILE'] == 1)
+            $i = $result['QUARTILE'];
+            while($i > 1)
             {
-                array_push($diffArr, [
-                    "label" => "Q1 Maximum",
-                    "data" => [abs($result['DIFFERENCE_Q1_MAX'])],
-                    "current" => false
-                ]);
-            }
-            else
-            {
-                $i = $result['QUARTILE']-1;
-                while($i != 0)
+                if($i == $result['QUARTILE'])
                 {
                     array_push($diffArr, [
-                        "label" => "Value till Q".$i,
-                        "data" => [abs($result['DIFFERENCE_Q'.$i.'_MIN'])],
+                        "label" => "Positive Measure till Q".($i-1),
+                        "data" => [round($result['DIFFERENCE_Q'.($i-1).'_MIN']-$result['POSITIVITY_MEASURE'],2)],
+                        "colorCode" => $i-2,
                         "current" => false
                     ]);
-                    array_push($diffArr, [
-                        "label" => "Q".$i." Maximum",
-                        "data" => [round(abs($result['DIFFERENCE_Q'.$i.'_MAX'])-abs($result['DIFFERENCE_Q'.$i.'_MIN']),2)],
-                        "current" => false
-                    ]);
-                    $i--;
                 }
+                else
+                {
+                    array_push($diffArr, [
+                        "label" => "Positive Measure till Q".($i-1),
+                        "data" => [round($result['DIFFERENCE_Q'.($i-1).'_MIN']-$result['DIFFERENCE_Q'.($i).'_MIN'],2)],
+                        "colorCode" => $i-2,
+                        "current" => false
+                    ]);
+                }
+                $i--;
             }
 
             return [

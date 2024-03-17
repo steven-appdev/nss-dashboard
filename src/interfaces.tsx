@@ -30,6 +30,7 @@ interface IDataFilter {
    level?: string;
    mode?: string;
    population?: string;
+   onClick?: (selectedQuestion: string) => void;
 }
 
 interface IQuartile {
@@ -43,6 +44,7 @@ interface IQuartile {
 interface IDifference {
     label: string;
     data: number[];
+    colorCode: number;
     current: boolean;
 }
 

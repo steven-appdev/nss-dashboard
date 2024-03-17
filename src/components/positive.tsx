@@ -8,12 +8,15 @@ export default function Positive({
    population,
    mode,
    level,
+   onClick
 }: IDataFilter) {
+
    const api = axios.create({
       baseURL: "https://w20003691.nuwebspace.co.uk/api/access",
    });
 
    const [data, setData] = useState<IPositiveResult[]>();
+   const [selectedQuestion, setSelectedQuestion] = useState<string>("Q01");
 
    useEffect(() => {
       const fetchPositives = async () => {
@@ -32,18 +35,28 @@ export default function Positive({
          );
       };
       fetchPositives();
-   }, [question, population, mode, level]);
+   }, [selectedQuestion, question, population, mode, level]);
+
+   useEffect(() => {
+      if (onClick){
+         onClick(selectedQuestion);
+      }
+   }, [selectedQuestion])
 
    function getColorCode(val: number) {
       if (val >= 75 && val <= 100) {
-         return "bg-green-400";
+         return "bg-green-400 text-green-800";
       } else if (val >= 50 && val <= 74) {
-         return "bg-yellow-300";
+         return "bg-yellow-300 text-yellow-700";
       } else if (val >= 24 && val <= 49) {
-         return "bg-red-300";
+         return "bg-red-200 text-red-500";
       } else if (val >= 0 && val <= 23) {
-         return "bg-red-400";
+         return "bg-red-400 text-red-800";
       }
+   }
+
+   const handleClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
+      setSelectedQuestion(event.currentTarget.id);
    }
 
    return (
@@ -70,29 +83,29 @@ export default function Positive({
             </thead>
             <tbody>
                {data?.map((item) => (
-                  <tr className="even:bg-slate-100">
+                  <tr className="even:bg-slate-100 hover:bg-gray-200 transition-colors" id={item.qid} onClick={handleClick}>
                      <td className="p-4 text-slate-600">{item.qid}</td>
                      <td className="p-4 text-slate-600">{item.qtext}</td>
-                     <td
-                        className={`border border-slate-100 p-4 ${getColorCode(
+                     <td>
+                        <span className={`px-3 py-1 inline-block w-20 rounded-full ${getColorCode(
                            item.rank_percentage
-                        )}`}
-                     >
-                        {item.positivity}
+                        )}`}>
+                           {item.positivity}
+                        </span>
                      </td>
-                     <td
-                        className={`border border-slate-100 p-4 ${getColorCode(
+                     <td>
+                        <span className={`px-3 py-1 inline-block w-20 rounded-full ${getColorCode(
                            item.rank_percentage
-                        )}`}
-                     >
-                        {item.rank}
+                        )}`}>
+                           {item.rank}
+                        </span>
                      </td>
-                     <td
-                        className={`border border-slate-100 p-4 ${getColorCode(
+                     <td>
+                        <span className={`px-3 py-1 inline-block w-20 rounded-full ${getColorCode(
                            item.rank_percentage
-                        )}`}
-                     >
-                        {item.rank_percentage}
+                        )}`}>
+                           {item.rank_percentage}
+                        </span>
                      </td>
                   </tr>
                ))}
