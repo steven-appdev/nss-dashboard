@@ -70,13 +70,16 @@ export default function Positive({
                   <th className="border-b font-medium text-slate-700 py-4">
                      Question
                   </th>
-                  <th className="border-b font-medium text-slate-700 py-4 w-[10%]">
+                  <th className="border-b font-medium text-slate-700 py-5 w-[15%]">
+                     Number of Responses
+                  </th>
+                  <th className="border-b font-medium text-slate-700 py-4 w-[8%]">
                      Positivity Measure (%)
                   </th>
-                  <th className="border-b font-medium text-slate-700 py-4 w-[10%]">
+                  <th className="border-b font-medium text-slate-700 py-4 w-[8%]">
                      Rank
                   </th>
-                  <th className="border-b font-medium text-slate-700 py-4 w-[10%]">
+                  <th className="border-b font-medium text-slate-700 py-4 w-[8%]">
                      Rank (%)
                   </th>
                </tr>
@@ -86,6 +89,7 @@ export default function Positive({
                   <tr className="even:bg-slate-100 hover:bg-gray-200 transition-colors" id={item.qid} onClick={handleClick}>
                      <td className="p-4 text-slate-600">{item.qid}</td>
                      <td className="p-4 text-slate-600">{item.qtext}</td>
+                     <td className="p-4 text-slate-600">{item.resp_count}</td>
                      <td>
                         <span className={`px-3 py-1 inline-block w-20 rounded-full ${getColorCode(
                            item.rank_percentage

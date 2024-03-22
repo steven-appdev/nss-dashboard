@@ -121,7 +121,7 @@ class Access extends APIResponse
     {
         $resultArr = [];
         $query = "WITH POSITIVE_RANK AS (
-                        SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE,
+                        SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE, NUMBER_RESPONSES,
                                 RANK() OVER (PARTITION BY QUESTION_NUMBER ORDER BY POSITIVITY_MEASURE DESC) AS RANKING,
                                 COUNT(*) OVER (PARTITION BY QUESTION_NUMBER) AS TOTAL_PROVIDER
                         FROM    nss_data
@@ -130,7 +130,7 @@ class Access extends APIResponse
                         AND     LEVEL_OF_STUDY = :level
                         AND     PROVIDER_NAME NOT IN ('UK','England','Northern Ireland','Scotland','Wales')
                     )
-                    SELECT  pr.POPULATION, pr.MODE_OF_STUDY, pr.LEVEL_OF_STUDY, pr.QUESTION_NUMBER, q.qtext AS QUESTION_TEXT,
+                    SELECT  pr.POPULATION, pr.MODE_OF_STUDY, pr.LEVEL_OF_STUDY, pr.QUESTION_NUMBER, q.qtext AS QUESTION_TEXT, pr.NUMBER_RESPONSES,
                             pr.POSITIVITY_MEASURE AS POSITIVITY,
                             pr.RANKING AS POSITIVITY_RANK,
                             ROUND(100-((pr.RANKING * 100)/pr.TOTAL_PROVIDER)) AS RANK_PERCENTAGE
@@ -147,6 +147,7 @@ class Access extends APIResponse
                 array_push($resultArr, [
                     "qid" => $data['QUESTION_NUMBER'],
                     "qtext" => $data['QUESTION_TEXT'],
+                    "resp_count" => $data['NUMBER_RESPONSES'],
                     "positivity" => $data['POSITIVITY'],
                     "rank" =>$data['POSITIVITY_RANK'],
                     "rank_percentage" => $data['RANK_PERCENTAGE']
@@ -169,7 +170,7 @@ class Access extends APIResponse
     {
         $query = "WITH 
                     POSITIVE_RANK AS (
-                        SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE,
+                        SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE, NUMBER_RESPONSES,
                         ROUND(100-((RANK() OVER (PARTITION BY QUESTION_NUMBER ORDER BY POSITIVITY_MEASURE DESC) * 100)/COUNT(*) OVER (PARTITION BY QUESTION_NUMBER))) AS 	
                         RANK_PERCENTAGE
                         FROM    nss_data
@@ -189,15 +190,11 @@ class Access extends APIResponse
                         FROM POSITIVE_RANK
                         WHERE QUESTION_NUMBER = :question
                     )
-                    SELECT  pq.QUESTION_NUMBER, q.qtext, pq.POSITIVITY_MEASURE, pq.QUARTILE,
+                    SELECT  pq.QUESTION_NUMBER, q.qtext, pq.POSITIVITY_MEASURE, pq.QUARTILE, pq.NUMBER_RESPONSES,
                             (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '1') AS DIFFERENCE_Q1_MIN,
-                            (SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '1') AS DIFFERENCE_Q1_MAX,
                             (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '2') AS DIFFERENCE_Q2_MIN,
-                            (SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '2') AS DIFFERENCE_Q2_MAX,
                             (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '3') AS DIFFERENCE_Q3_MIN,
-                            (SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '3') AS DIFFERENCE_Q3_MAX,
-                            (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4') AS DIFFERENCE_Q4_MIN,
-                            (SELECT MAX(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4') AS DIFFERENCE_Q4_MAX
+                            (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4') AS DIFFERENCE_Q4_MIN
                     FROM    POSITIVE_QUARTILE pq,
                             nss_question q
                     WHERE   pq.QUESTION_NUMBER = q.qid
@@ -209,8 +206,9 @@ class Access extends APIResponse
         {
             $diffArr = [
                 [
-                    "label" => "Our Positive Measure at Q". $result['QUARTILE'],
+                    "label" => "Quartile ". $result['QUARTILE'],
                     "data" => [$result['POSITIVITY_MEASURE']],
+                    "abs_data" => [round($result['NUMBER_RESPONSES'] * ($result['POSITIVITY_MEASURE']/100))],
                     "colorCode" => $result['QUARTILE']-1,
                     "current" => true
                 ]
@@ -221,9 +219,11 @@ class Access extends APIResponse
             {
                 if($i == $result['QUARTILE'])
                 {
+                    $nextQuart = round($result['NUMBER_RESPONSES'] * (($result['DIFFERENCE_Q'.($i-1).'_MIN']-$result['POSITIVITY_MEASURE'])/100));
                     array_push($diffArr, [
-                        "label" => "Positive Measure till Q".($i-1),
+                        "label" => "Quartile ".($i-1),
                         "data" => [round($result['DIFFERENCE_Q'.($i-1).'_MIN']-$result['POSITIVITY_MEASURE'],2)],
+                        "abs_data" => [($nextQuart < 0.5)?1:$nextQuart],
                         "colorCode" => $i-2,
                         "current" => false
                     ]);
@@ -231,8 +231,9 @@ class Access extends APIResponse
                 else
                 {
                     array_push($diffArr, [
-                        "label" => "Positive Measure till Q".($i-1),
+                        "label" => "Quartile ".($i-1),
                         "data" => [round($result['DIFFERENCE_Q'.($i-1).'_MIN']-$result['DIFFERENCE_Q'.($i).'_MIN'],2)],
+                        "abs_data" => [round($result['NUMBER_RESPONSES'] * (($result['DIFFERENCE_Q'.($i-1).'_MIN']-$result['DIFFERENCE_Q'.($i).'_MIN'])/100))],
                         "colorCode" => $i-2,
                         "current" => false
                     ]);
@@ -243,6 +244,7 @@ class Access extends APIResponse
             return [
                 "qid" => $result['QUESTION_NUMBER'],
                 "qtext" => $result['qtext'],
+                "resp_count" => $result['NUMBER_RESPONSES'],
                 "positive" => $result['POSITIVITY_MEASURE'],
                 "quartile" => $result['QUARTILE'],
                 "differences" => $diffArr

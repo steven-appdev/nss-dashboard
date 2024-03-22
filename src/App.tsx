@@ -6,17 +6,20 @@ import Positive from "./components/positive";
 import Difference from "./components/difference";
 
 export default function App() {
+
    const [option, setOption] = useState<{ [key: string]: string }>({
       qdrop: "all",
       popdrop: "registered",
       modedrop: "all",
       leveldrop: "all",
    });
-   const [question, setQuestion] = useState<string>();
+
+   const [question, setQuestion] = useState<string>("Q01");
+
    return (
       <div className="App flex flex-col h-screen">
          <Options onChange={setOption} />
-         <div className="mt-10 mx-10 h-[400px]">
+         <div className="mt-10 mx-10 h-[350px]">
             <div className="flex flex-row h-full">
                <div className="border rounded-md w-1/4 p-4 mr-1">
                   /* Update to Emotion visualisation */

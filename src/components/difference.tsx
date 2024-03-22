@@ -40,6 +40,7 @@ export default function Difference({
       baseURL: "https://w20003691.nuwebspace.co.uk/api/access",
    });
 
+   const [max, setMax] = useState<number>(99);
    const [data, setData] = useState<ChartDataset<"bar">[]>([]);
    const [option, setOption] = useState<ChartOptions<"bar">>({
       maintainAspectRatio: false,
@@ -59,17 +60,16 @@ export default function Difference({
             "&q=" +
             question;
 
-         console.log(request);
          let response = await api.get<IQuartile>(request);
-
+         setMax(response.data.resp_count);
          const colorCode = ["rgb(74,222,128","rgb(253,224,71","rgb(254,202,202","rgb(248,113,113"]
          const retrievedData: ChartDataset<"bar">[] =
             response.data.differences.map((diff) => ({
                label: diff.label,
-               data: [diff.data[0]],
+               data: [diff.abs_data[0]],
                backgroundColor: diff.current
                   ? "rgb(71,85,105)"
-                  : colorCode[diff.colorCode]+",0.4)"
+                  : colorCode[diff.colorCode]+")"
                ,
             }));
          setData(retrievedData);
@@ -83,10 +83,10 @@ export default function Difference({
                legend: {
                   display: true,
                   labels:{
-                     generateLabels: (chart): LegendItem[] => {
+                     generateLabels: (): LegendItem[] => {
                         const datasets = retrievedData;
                         return datasets.map((item)=>({
-                           text: String(item.label)+" ("+String(item.data)+"%)",
+                           text: String(item.label),
                            fillStyle: String(item.backgroundColor),
                         }))
                      },
@@ -95,14 +95,13 @@ export default function Difference({
                      },
                      padding: 30,
                      boxWidth: 18
-                  },
-                  position: "bottom"
+                  }
                },
                title: {
                   display: true,
-                  text: "Positive Measure for "+question,
+                  text: "Positive Reponses for "+question,
                   font: {
-                     size: 18
+                     size: 20
                   }
                },
                datalabels: {
@@ -110,16 +109,31 @@ export default function Difference({
                },
                tooltip: {
                   callbacks: {
-                     title : () => ""
+                     title : () => "",
+                     label: function(context){
+                        if(context.datasetIndex == 0)
+                        {
+                           return `You are currently at ${context.dataset.label} with ${context.formattedValue} positive responses!`
+                        }
+                        else
+                        {
+                           var i = context.datasetIndex;
+                           var total = 0;
+                           while(i>=1){
+                              total += response.data.differences[i].abs_data[0]
+                              i--;
+                           }
+                           return `${total} more positive responses until ${context.dataset.label}!`
+                        }
+                     }
                   },
                   position: "average",
                   bodyFont: {
-                     size: 16,
-                     weight: "bold"
+                     size: 20
                   },
                   padding: 10,
                   animation: {
-                     duration: 300
+                     duration: 200
                   },
                   displayColors: false
                }
@@ -127,6 +141,7 @@ export default function Difference({
             scales: {
                x: {
                   stacked: true,
+                  suggestedMax: response.data.resp_count
                },
                y: {
                   stacked: true,

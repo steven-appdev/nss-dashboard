@@ -20,6 +20,7 @@ interface IPositive {
 interface IPositiveResult {
    qid: string;
    qtext: string;
+   resp_count: number;
    positivity: number;
    rank: number;
    rank_percentage: number;
@@ -36,6 +37,7 @@ interface IDataFilter {
 interface IQuartile {
     qid: string;
     qtext: string;
+    resp_count: number;
     positive: number;
     quartile: number;
     differences: IDifference[];
@@ -44,6 +46,7 @@ interface IQuartile {
 interface IDifference {
     label: string;
     data: number[];
+    abs_data: number[];
     colorCode: number;
     current: boolean;
 }
