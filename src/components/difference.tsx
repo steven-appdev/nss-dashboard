@@ -93,16 +93,20 @@ export default function Difference({
                      font:{
                         size: 16
                      },
-                     padding: 30,
-                     boxWidth: 18
-                  }
+                     boxWidth: 18,
+                     boxHeight: 18,
+                     padding: 18
+                  },
+                  onClick: function(event, legendItem) {},
+                  position: "bottom"
                },
                title: {
                   display: true,
                   text: "Positive Reponses for "+question,
                   font: {
                      size: 20
-                  }
+                  },
+                  padding: 15
                },
                datalabels: {
                   display: false
