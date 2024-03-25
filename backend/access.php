@@ -18,7 +18,9 @@ class Access extends APIResponse
                 }else if(isset($_REQUEST['positives'])){
                     $result = $this->RetrievePositives($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level']);
                 }else if(isset($_REQUEST['quartdiff'])){
-                    $result = $this->RetrieveQuartileDiff($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q']);   
+                    $result = $this->RetrieveQuartileDiff($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q']);
+                }else if(isset($_REQUEST['resprate'])){
+                    $result = $this->RetrieveResponseRate($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q']);
                 }else if(isset($_REQUEST['test'])){
                     $upload_max_size = ini_get('upload_max_filesize');
                     $result = ["result" => $upload_max_size];
@@ -273,6 +275,60 @@ class Access extends APIResponse
                 "positive" => $result['POSITIVITY_MEASURE'],
                 "quartile" => $result['QUARTILE'],
                 "differences" => $diffArr
+            ];
+        }
+    }
+
+    private function RetrieveResponseRate($db, $population, $mode, $level, $question)
+    {
+        $query = "SELECT QUESTION_NUMBER,NUMBER_RESPONSES, NUMBER_POPULATION, PUB_RESPONSE_HEADCOUNT, PUB_RESPRATE
+                    FROM nss_data
+                    WHERE PROVIDER_NAME = 'University of Northumbria at Newcastle'
+                    AND POPULATION = :population
+                    AND MODE_OF_STUDY = :mode
+                    AND LEVEL_OF_STUDY = :level
+                    AND QUESTION_NUMBER = :question;";
+
+        $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level), "question" => $question];
+        $result = $db->executeSQL($query, $parameter)->fetch(PDO::FETCH_ASSOC);
+        if(!empty($result))
+        {
+            $detailArr = [];
+            $notApplicable = $result['PUB_RESPONSE_HEADCOUNT']-$result['NUMBER_RESPONSES'];
+            $notParticipate = $result['NUMBER_POPULATION']-$result['PUB_RESPONSE_HEADCOUNT'];
+
+            if($result['NUMBER_RESPONSES'] > 0)
+            {
+                array_push($detailArr, [
+                    "label" => "Responded",
+                    "data" => $result['NUMBER_RESPONSES'],
+                    "colorCode" => 0
+                ]);
+            }
+
+            if($notApplicable > 0)
+            {
+                array_push($detailArr, [
+                    "label" => "Not Applicable",
+                    "data" => $notApplicable,
+                    "colorCode" => 1
+                ]);
+            }
+
+            if($notParticipate > 0)
+            {
+                array_push($detailArr, [
+                    "label" => "Not Participate",
+                    "data" => $notParticipate,
+                    "colorCode" => 2
+                ]);
+            }
+
+            return [
+                "qid" => $result['QUESTION_NUMBER'],
+                "num_pop" => $result['NUMBER_POPULATION'],
+                "resp_rate" => $result['PUB_RESPRATE'],
+                "detail" => $detailArr
             ];
         }
     }

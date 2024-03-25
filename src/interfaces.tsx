@@ -36,20 +36,42 @@ interface IDataFilter {
 }
 
 interface IQuartile {
-    qid: string;
-    qtext: string;
-    resp_count: number;
-    positive: number;
-    quartile: number;
-    differences: IDifference[];
+   qid: string;
+   qtext: string;
+   resp_count: number;
+   positive: number;
+   quartile: number;
+   differences: IDifference[];
 }
 
 interface IDifference {
-    label: string;
-    data: number[];
-    abs_data: number[];
-    colorCode: number;
-    current: boolean;
+   label: string;
+   data: number[];
+   abs_data: number[];
+   colorCode: number;
+   current: boolean;
 }
 
-export type { IProvider, IQuestion, IPositive, IPositiveResult, IDataFilter, IQuartile, IDifference };
+interface IRespRate {
+   qid: string;
+   num_pop: number;
+   resp_rate: number;
+   detail: IDetail[];
+}
+
+interface IDetail {
+   label: string;
+   data: number;
+   colorCode: number;
+}
+
+export type {
+   IProvider,
+   IQuestion,
+   IPositive,
+   IPositiveResult,
+   IDataFilter,
+   IQuartile,
+   IDifference,
+   IRespRate
+};

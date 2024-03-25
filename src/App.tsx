@@ -4,7 +4,7 @@ import "./tail.css";
 import Options from "./components/options";
 import Positive from "./components/positive";
 import Difference from "./components/difference";
-import Ratio from "./components/ratio";
+import RespRate from "./components/resprate";
 
 export default function App() {
 
@@ -22,10 +22,15 @@ export default function App() {
          <Options onChange={setOption} />
          <div className="mt-10 mx-10 h-[350px]">
             <div className="flex flex-row h-full">
-               <div className="border rounded-md w-1/4 px-8 py-5 mr-1">
-                  <Ratio />
+               <div className="border rounded-md w-[30%] px-8 py-5 mr-1">
+                  <RespRate 
+                     question={question}
+                     population={option["popdrop"]}
+                     mode={option["modedrop"]}
+                     level={option["leveldrop"]}
+                  />
                </div>
-               <div className="border rounded-md w-3/4 px-10 py-5 ml-1">
+               <div className="border rounded-md w-[70%] px-10 py-5 ml-1">
                   <Difference 
                      question={question}
                      population={option["popdrop"]}

@@ -40,7 +40,6 @@ export default function Positive({
    useEffect(() => {
       if (onClick) {
          onClick(selectedQuestion);
-         console.log(onClick);
       }
    }, [selectedQuestion]);
 
