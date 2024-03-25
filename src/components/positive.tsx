@@ -30,7 +30,8 @@ export default function Positive({
          setData(
             question === "all"
                ? response.data.results
-               : response.data.results.filter((item) => item.qid === question)
+               : question?.charAt(0) === "Q" ? response.data.results.filter((item) => item.qid === question) : response.data.results.filter((item) => item.tid === question)
+               
          );
       };
       fetchPositives();
@@ -39,6 +40,7 @@ export default function Positive({
    useEffect(() => {
       if (onClick) {
          onClick(selectedQuestion);
+         console.log(onClick);
       }
    }, [selectedQuestion]);
 

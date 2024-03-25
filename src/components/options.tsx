@@ -54,10 +54,10 @@ export default function Options({ onChange }: Props) {
                id="qdrop"
                onChange={handleSelectChange}
             >
-               <option value="all">All Questions</option>
+               <option value="all">--- All Questions ---</option>
                {questions.map((question) => (
                   <option value={question.id}>
-                     {question.id + ": " + question.question}
+                     {question.question}
                   </option>
                ))}
             </select>

@@ -158,7 +158,7 @@ export default function Difference({
          setOption(bar_option);
       };
       fetchQuartile();
-   }, [question]);
+   }, [question, population, mode, level]);
 
    const bar_data: ChartData<"bar"> = {
       labels: ["No label"],

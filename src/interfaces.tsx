@@ -20,6 +20,7 @@ interface IPositive {
 interface IPositiveResult {
    qid: string;
    qtext: string;
+   tid: string;
    resp_count: number;
    positivity: number;
    rank: number;

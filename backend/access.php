@@ -99,14 +99,20 @@ class Access extends APIResponse
     private function RetrieveAllQuestions($db)
     {
         $resultArr = [];
-        $query = "SELECT * FROM nss_question";
+        $query = "SELECT tq.tid, tq.qid, q.qtext
+                    FROM nss_themequestions AS tq, nss_question AS q
+                    WHERE tq.qid = q.qid
+                    UNION
+                    SELECT t.tid, t.tid AS qid, t.ttext AS qtext
+                    FROM nss_theme AS t
+                    ORDER BY CASE WHEN tid IS NULL THEN 1 ELSE 0 END, tid, qid;";
         $result = $db->executeSQL($query)->fetchAll();
         if(!empty($result))
         {
             foreach($result as $data){
                 array_push($resultArr,[
                     "id" => $data['qid'],
-                    "question" => $data['qtext']
+                    "question" => ($data['qid'][0] == "T") ? "--- ".$data['qid'].": ".$data['qtext']." ---" : $data['qid'].": ".$data['qtext']
                 ]);
             }
             return $resultArr;
@@ -120,24 +126,31 @@ class Access extends APIResponse
     private function RetrievePositives($db, $population, $mode, $level)
     {
         $resultArr = [];
-        $query = "WITH POSITIVE_RANK AS (
-                        SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE, NUMBER_RESPONSES,
+        $query = "WITH
+                    QUESTIONS AS (
+                        SELECT tq.tid, tq.qid, q.qtext
+                        FROM nss_themequestions AS tq, nss_question AS q
+                        WHERE tq.qid = q.qid
+                        UNION
+                        SELECT t.tid, t.tid AS qid, t.ttext AS qtext
+                        FROM nss_theme AS t
+                    ),
+                    POSITIVE_RANK AS (
+                        SELECT *, ROUND(100-((RANKING * 100)/TOTAL_PROVIDER)) AS RANK_PERCENTAGE FROM
+                        (SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE, NUMBER_RESPONSES,
                                 RANK() OVER (PARTITION BY QUESTION_NUMBER ORDER BY POSITIVITY_MEASURE DESC) AS RANKING,
                                 COUNT(*) OVER (PARTITION BY QUESTION_NUMBER) AS TOTAL_PROVIDER
                         FROM    nss_data
                         WHERE   POPULATION = :population
                         AND     MODE_OF_STUDY = :mode
                         AND     LEVEL_OF_STUDY = :level
-                        AND     PROVIDER_NAME NOT IN ('UK','England','Northern Ireland','Scotland','Wales')
+                        AND     PROVIDER_NAME NOT IN ('UK','England','Northern Ireland','Scotland','Wales')) AS UNIVERSITY_RANK
+                        WHERE   PROVIDER_NAME = 'University of Northumbria at Newcastle'
                     )
-                    SELECT  pr.POPULATION, pr.MODE_OF_STUDY, pr.LEVEL_OF_STUDY, pr.QUESTION_NUMBER, q.qtext AS QUESTION_TEXT, pr.NUMBER_RESPONSES,
-                            pr.POSITIVITY_MEASURE AS POSITIVITY,
-                            pr.RANKING AS POSITIVITY_RANK,
-                            ROUND(100-((pr.RANKING * 100)/pr.TOTAL_PROVIDER)) AS RANK_PERCENTAGE
-                    FROM    POSITIVE_RANK pr,
-                            nss_question q
-                    WHERE   pr.QUESTION_NUMBER = q.qid
-                    AND     PROVIDER_NAME = 'University of Northumbria at Newcastle'";
+                    SELECT  pr.POPULATION, pr.MODE_OF_STUDY, pr.LEVEL_OF_STUDY, q.*, NUMBER_RESPONSES, pr.POSITIVITY_MEASURE AS POSITIVITY, pr.RANKING AS POSITIVITY_RANK, RANK_PERCENTAGE
+                    FROM    QUESTIONS q, POSITIVE_RANK pr
+                    WHERE   q.qid = pr.QUESTION_NUMBER
+                    ORDER BY CASE WHEN tid IS NULL THEN 1 ELSE 0 END, tid, qid";
 
         $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level)];
         $result = $db->executeSQL($query, $parameter)->fetchAll();
@@ -145,8 +158,9 @@ class Access extends APIResponse
         {
             foreach($result as $data){
                 array_push($resultArr, [
-                    "qid" => $data['QUESTION_NUMBER'],
-                    "qtext" => $data['QUESTION_TEXT'],
+                    "qid" => $data['qid'],
+                    "qtext" => $data['qtext'],
+                    "tid" => $data['tid'],
                     "resp_count" => $data['NUMBER_RESPONSES'],
                     "positivity" => $data['POSITIVITY'],
                     "rank" =>$data['POSITIVITY_RANK'],
@@ -169,15 +183,26 @@ class Access extends APIResponse
     private function RetrieveQuartileDiff($db, $population, $mode, $level, $question)
     {
         $query = "WITH 
+                    QUESTIONS AS (
+                        SELECT tq.tid, tq.qid, q.qtext
+                        FROM nss_themequestions AS tq, nss_question AS q
+                        WHERE tq.qid = q.qid
+                        UNION
+                        SELECT t.tid, t.tid AS qid, t.ttext AS qtext
+                        FROM nss_theme AS t
+                    ),
                     POSITIVE_RANK AS (
-                        SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE, NUMBER_RESPONSES,
-                        ROUND(100-((RANK() OVER (PARTITION BY QUESTION_NUMBER ORDER BY POSITIVITY_MEASURE DESC) * 100)/COUNT(*) OVER (PARTITION BY QUESTION_NUMBER))) AS 	
-                        RANK_PERCENTAGE
-                        FROM    nss_data
-                        WHERE   POPULATION = :population
-                        AND     MODE_OF_STUDY = :mode
-                        AND     LEVEL_OF_STUDY = :level
-                        AND     PROVIDER_NAME NOT IN ('UK','England','Northern Ireland','Scotland','Wales')
+                        SELECT *, ROUND(100-((RANKING * 100)/TOTAL_PROVIDER)) AS RANK_PERCENTAGE FROM
+                        (
+                            SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE, NUMBER_RESPONSES,
+                                    RANK() OVER (PARTITION BY QUESTION_NUMBER ORDER BY POSITIVITY_MEASURE DESC) AS RANKING,
+                                    COUNT(*) OVER (PARTITION BY QUESTION_NUMBER) AS TOTAL_PROVIDER
+                            FROM    nss_data
+                            WHERE   POPULATION = :population
+                            AND     MODE_OF_STUDY = :mode
+                            AND     LEVEL_OF_STUDY = :level
+                            AND     PROVIDER_NAME NOT IN ('UK','England','Northern Ireland','Scotland','Wales')
+                        ) AS UNIVERSITY_RANK
                     ),
                     POSITIVE_QUARTILE AS (
                         SELECT 	*,
@@ -190,13 +215,13 @@ class Access extends APIResponse
                         FROM POSITIVE_RANK
                         WHERE QUESTION_NUMBER = :question
                     )
-                    SELECT  pq.QUESTION_NUMBER, q.qtext, pq.POSITIVITY_MEASURE, pq.QUARTILE, pq.NUMBER_RESPONSES,
+                    SELECT  q.*, pq.POSITIVITY_MEASURE, pq.QUARTILE, pq.NUMBER_RESPONSES,
                             (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '1') AS DIFFERENCE_Q1_MIN,
                             (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '2') AS DIFFERENCE_Q2_MIN,
                             (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '3') AS DIFFERENCE_Q3_MIN,
                             (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4') AS DIFFERENCE_Q4_MIN
                     FROM    POSITIVE_QUARTILE pq,
-                            nss_question q
+                            questions q
                     WHERE   pq.QUESTION_NUMBER = q.qid
                     AND		pq.PROVIDER_NAME = 'University of Northumbria at Newcastle';";
 
@@ -242,7 +267,7 @@ class Access extends APIResponse
             }
 
             return [
-                "qid" => $result['QUESTION_NUMBER'],
+                "qid" => $result['qid'],
                 "qtext" => $result['qtext'],
                 "resp_count" => $result['NUMBER_RESPONSES'],
                 "positive" => $result['POSITIVITY_MEASURE'],
