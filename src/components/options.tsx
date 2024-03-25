@@ -45,59 +45,88 @@ export default function Options({ onChange }: Props) {
    };
 
    return (
-      <div className="flex flex-wrap bg-slate-600 py-5 justify-center">
-         <label className="text-slate-100 mx-6 font-medium">
-            Questions
-            <select
-               className="ml-3 p-2 text-slate-950 font-normal rounded-md"
-               name="qdrop"
-               id="qdrop"
-               onChange={handleSelectChange}
-            >
-               <option value="all">--- All Questions ---</option>
-               {questions.map((question) => (
-                  <option value={question.id}>
-                     {question.question}
-                  </option>
-               ))}
-            </select>
-         </label>
-         <label className="text-slate-100 mx-6 font-medium">
-            Population
-            <select
-               className="ml-3 p-2 text-slate-950 font-normal rounded-md"
-               name="popdrop"
-               id="popdrop"
-               onChange={handleSelectChange}
-            >
-               <option value="registered">Registered</option>
-               <option value="taught">Taught</option>
-            </select>
-         </label>
-         <label className="text-slate-100 mx-6 font-medium">
-            Mode of Study
-            <select
-               className="ml-3 p-2 text-slate-950 font-normal rounded-md"
-               name="modedrop"
-               id="modedrop"
-               onChange={handleSelectChange}
-            >
-               <option value="all">All modes</option>
-               <option value="full">Full time</option>
-            </select>
-         </label>
-         <label className="text-slate-100 mx-6 font-medium">
-            Level of Study
-            <select
-               className="ml-3 p-2 text-slate-950 font-normal rounded-md"
-               name="leveldrop"
-               id="leveldrop"
-               onChange={handleSelectChange}
-            >
-               <option value="all">All undergraduates</option>
-               <option value="first">First degree</option>
-            </select>
-         </label>
+      <div className="flex flex-col w-full px-10">
+         <div className="grid grid-cols-4 gap-6 pb-3">
+            <div className="flex flex-col">
+               <label className="text-slate-100 font-medium text-left">Year</label>
+               <select
+                  className="p-1 text-slate-950 font-normal rounded-sm"
+                  name="yeardrop"
+                  id="yeardrop"
+                  onChange={handleSelectChange}
+               >
+                  <option value="registered">2023</option>
+               </select>
+            </div>
+            <div className="flex flex-col">
+               <label className="text-slate-100 font-medium text-left">Population</label>
+               <select
+                  className="p-1 text-slate-950 font-normal rounded-sm"
+                  name="popdrop"
+                  id="popdrop"
+                  onChange={handleSelectChange}
+               >
+                  <option value="registered">Registered</option>
+                  <option value="taught">Taught</option>
+               </select>
+            </div>
+            <div className="flex flex-col">
+               <label className="text-slate-100 font-medium text-left">Mode</label>
+               <select
+                  className="p-1 text-slate-950 font-normal rounded-sm"
+                  name="modedrop"
+                  id="modedrop"
+                  onChange={handleSelectChange}
+               >
+                  <option value="all">All modes</option>
+                  <option value="full">Full time</option>
+               </select>
+            </div>
+            <div className="flex flex-col">
+               <label className="text-slate-100 font-medium text-left">Level</label>
+               <select
+                  className="p-1 text-slate-950 font-normal rounded-sm"
+                  name="leveldrop"
+                  id="leveldrop"
+                  onChange={handleSelectChange}
+               >
+                  <option value="all">All undergraduates</option>
+                  <option value="first">First degree</option>
+               </select>
+            </div>
+         </div>
+         <div className="grid grid-cols-3 gap-6">
+            <div className="flex flex-col">
+               <label className="text-slate-100 font-medium text-left">Subject</label>
+               <select
+                  className="p-1 text-slate-950 font-normal rounded-sm"
+                  name="subdrop"
+                  id="subdrop"
+                  onChange={handleSelectChange}
+               >
+                  <option value="Computer Science">Computer Science</option>
+               </select>
+            </div>
+            <div className="flex flex-col col-span-2">
+               <label className="text-slate-100 font-medium text-left">
+                  Questions
+               </label>
+               <select
+                  className="p-1 text-slate-950 font-normal rounded-sm"
+                  name="qdrop"
+                  id="qdrop"
+                  onChange={handleSelectChange}
+               >
+                  <option value="all">--- All Questions ---</option>
+                  {questions.map((question) => (
+                     <option value={question.id}>
+                        {question.question}
+                     </option>
+                  ))}
+               </select>
+            </div>
+         </div>
+         
       </div>
    );
 }

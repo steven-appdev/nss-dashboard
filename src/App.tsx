@@ -19,10 +19,12 @@ export default function App() {
 
    return (
       <div className="App flex flex-col h-screen">
-         <Options onChange={setOption} />
-         <div className="mt-10 mx-10 h-[350px]">
+         <div className="flex flex-wrap bg-slate-600 pt-2 pb-5 justify-center">
+            <Options onChange={setOption} />
+         </div>
+         <div className="mt-10 mx-10 h-[300px]">
             <div className="flex flex-row h-full">
-               <div className="border rounded-md w-[30%] px-8 py-5 mr-1">
+               <div className="border rounded-md w-[30%] px-8 py-2 mr-1">
                   <RespRate 
                      question={question}
                      population={option["popdrop"]}
@@ -30,7 +32,7 @@ export default function App() {
                      level={option["leveldrop"]}
                   />
                </div>
-               <div className="border rounded-md w-[70%] px-10 py-5 ml-1">
+               <div className="border rounded-md w-[70%] px-10 py-2 ml-1">
                   <Difference 
                      question={question}
                      population={option["popdrop"]}
@@ -40,7 +42,6 @@ export default function App() {
                </div>
             </div>
          </div>
-         
          <Positive
             question={option["qdrop"]}
             population={option["popdrop"]}
