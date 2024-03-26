@@ -41,7 +41,7 @@ export default function RespRate({
          ctx.save();
          const xCoor = chart.getDatasetMeta(0).data[0].x;
          const yCoor = chart.getDatasetMeta(0).data[0].y;
-         ctx.font = '30px sans-serif';
+         ctx.font = '28px sans-serif';
          ctx.fillStyle = 'rgb(0, 0, 0)';
          ctx.textAlign = "center";
          ctx.textBaseline = "middle";
