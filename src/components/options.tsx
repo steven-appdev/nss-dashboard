@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { IQuestion } from "../interfaces";
+import { IQuestion, ISubject, IYear } from "../interfaces";
 
 interface Props {
    onChange?: (selectedOption: { [key: string]: string }) => void;
@@ -12,7 +12,9 @@ export default function Options({ onChange }: Props) {
    });
 
    const [questions, setQuestions] = useState<IQuestion[]>([]);
-   
+   const [years, setYears] = useState<IYear[]>([]);
+   const [selectedYear, setSelectedYear] = useState<String>("2023");
+   const [subjects, setSubjects] = useState<ISubject[]>([]);
    const [selectedOptions, setSelectedOptions] = useState<{
       [key: string]: string;
    }>({
@@ -20,6 +22,8 @@ export default function Options({ onChange }: Props) {
       popdrop: "registered",
       modedrop: "all",
       leveldrop: "all",
+      yeardrop: "2023",
+      subdrop: "Computer science"
    });
 
    useEffect(() => {
@@ -28,7 +32,27 @@ export default function Options({ onChange }: Props) {
          setQuestions(response.data);
       };
       fetchQuestions();
+
+      const fetchYears = async () => {
+         let response = await api.get<IYear[]>("?years");
+         setYears(response.data);
+      };
+      fetchYears();
    }, []);
+
+   useEffect(() => {
+      const fetchSubjects = async () => {
+         let response = await api.get<ISubject[]>("?subjects&year="+selectedYear);
+         setSubjects(response.data);
+         
+         setSelectedOptions((prevState) => ({
+            ...prevState,
+            subdrop: response.data[0].subject,
+            yeardrop: ""+selectedYear
+         }));
+      };
+      fetchSubjects();
+   }, [selectedYear])
 
    useEffect(() => {
       if (onChange) {
@@ -38,10 +62,17 @@ export default function Options({ onChange }: Props) {
 
    const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
       const { name, value } = event.target;
-      setSelectedOptions((prevState) => ({
-         ...prevState,
-         [name]: value,
-      }));
+      if(name === "yeardrop")
+      {
+         setSelectedYear(value)
+      }
+      else
+      {
+         setSelectedOptions((prevState) => ({
+            ...prevState,
+            [name]: value,
+         }));
+      }
    };
 
    return (
@@ -55,7 +86,9 @@ export default function Options({ onChange }: Props) {
                   id="yeardrop"
                   onChange={handleSelectChange}
                >
-                  <option value="registered">2023</option>
+                  {years.map((year) =>(
+                     <option value={year.year}>{year.year}</option>
+                  ))}
                </select>
             </div>
             <div className="flex flex-col">
@@ -104,7 +137,9 @@ export default function Options({ onChange }: Props) {
                   id="subdrop"
                   onChange={handleSelectChange}
                >
-                  <option value="Computer Science">Computer Science</option>
+                  {subjects.map((subject, index) =>(
+                     <option value={subject.subject} selected={index === 0}>{subject.subject}</option>
+                  ))}
                </select>
             </div>
             <div className="flex flex-col col-span-2">

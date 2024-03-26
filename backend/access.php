@@ -15,12 +15,16 @@ class Access extends APIResponse
                     $result = $this->RetrieveAllProviders($db);
                 }else if(isset($_REQUEST['questions'])){
                     $result = $this->RetrieveAllQuestions($db);
+                }else if(isset($_REQUEST['years'])){
+                    $result = $this->RetrieveAllYears($db);
+                }else if(isset($_REQUEST['subjects'])){
+                    $result = $this->RetrieveAllSubjects($db, $_REQUEST['year']);
                 }else if(isset($_REQUEST['positives'])){
-                    $result = $this->RetrievePositives($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level']);
+                    $result = $this->RetrievePositives($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['year'],$_REQUEST['subject']);
                 }else if(isset($_REQUEST['quartdiff'])){
-                    $result = $this->RetrieveQuartileDiff($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q']);
+                    $result = $this->RetrieveQuartileDiff($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q'], $_REQUEST['year'],$_REQUEST['subject']);
                 }else if(isset($_REQUEST['resprate'])){
-                    $result = $this->RetrieveResponseRate($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q']);
+                    $result = $this->RetrieveResponseRate($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q'], $_REQUEST['year'],$_REQUEST['subject']);
                 }else if(isset($_REQUEST['test'])){
                     $upload_max_size = ini_get('upload_max_filesize');
                     $result = ["result" => $upload_max_size];
@@ -125,7 +129,36 @@ class Access extends APIResponse
         }
     }
 
-    private function RetrievePositives($db, $population, $mode, $level)
+    private function RetrieveAllYears($db)
+    {
+        $resultArr = [];
+        $query = "SELECT DISTINCT YEAR FROM nss_data";
+        $result = $db->executeSQL($query)->fetchAll();
+        if(!empty($result))
+        {
+            foreach($result as $data){
+                array_push($resultArr, ["year" => $data["YEAR"]]);
+            }
+            return $resultArr;
+        }
+    }
+
+    private function RetrieveAllSubjects($db, $year)
+    {
+        $resultArr = [];
+        $query = "SELECT DISTINCT CAH_NAME FROM nss_data WHERE YEAR = :year";
+        $parameter = ["year" => $year];
+        $result = $db->executeSQL($query, $parameter)->fetchAll();
+        if(!empty($result))
+        {
+            foreach($result as $data){
+                array_push($resultArr, ["subject" => $data["CAH_NAME"]]);
+            }
+            return $resultArr;
+        }
+    }
+
+    private function RetrievePositives($db, $population, $mode, $level, $year, $subject)
     {
         $resultArr = [];
         $query = "WITH
@@ -146,7 +179,9 @@ class Access extends APIResponse
                         WHERE   POPULATION = :population
                         AND     MODE_OF_STUDY = :mode
                         AND     LEVEL_OF_STUDY = :level
-                        AND     PROVIDER_NAME NOT IN ('UK','England','Northern Ireland','Scotland','Wales')) AS UNIVERSITY_RANK
+                        AND     YEAR = :year
+                        AND     CAH_NAME = :subject
+                        AND     PROVIDER_NAME IN (SELECT uname FROM times_uni)) AS UNIVERSITY_RANK
                         WHERE   PROVIDER_NAME = 'University of Northumbria at Newcastle'
                     )
                     SELECT  pr.POPULATION, pr.MODE_OF_STUDY, pr.LEVEL_OF_STUDY, q.*, NUMBER_RESPONSES, pr.POSITIVITY_MEASURE AS POSITIVITY, pr.RANKING AS POSITIVITY_RANK, RANK_PERCENTAGE
@@ -154,7 +189,7 @@ class Access extends APIResponse
                     WHERE   q.qid = pr.QUESTION_NUMBER
                     ORDER BY CASE WHEN tid IS NULL THEN 1 ELSE 0 END, tid, qid";
 
-        $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level)];
+        $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level), "year" => $year, "subject" => $subject];
         $result = $db->executeSQL($query, $parameter)->fetchAll();
         if(!empty($result))
         {
@@ -176,13 +211,9 @@ class Access extends APIResponse
                 "results" => $resultArr
             ];
         }
-        else
-        {
-            throw new Exception("No content found!");
-        }
     }
 
-    private function RetrieveQuartileDiff($db, $population, $mode, $level, $question)
+    private function RetrieveQuartileDiff($db, $population, $mode, $level, $question, $year, $subject)
     {
         $query = "WITH 
                     QUESTIONS AS (
@@ -203,7 +234,9 @@ class Access extends APIResponse
                             WHERE   POPULATION = :population
                             AND     MODE_OF_STUDY = :mode
                             AND     LEVEL_OF_STUDY = :level
-                            AND     PROVIDER_NAME NOT IN ('UK','England','Northern Ireland','Scotland','Wales')
+                            AND     YEAR = :year
+                            AND     CAH_NAME = :subject
+                            AND     PROVIDER_NAME IN (SELECT uname FROM times_uni)
                         ) AS UNIVERSITY_RANK
                     ),
                     POSITIVE_QUARTILE AS (
@@ -223,11 +256,11 @@ class Access extends APIResponse
                             (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '3') AS DIFFERENCE_Q3_MIN,
                             (SELECT MIN(POSITIVITY_MEASURE) FROM POSITIVE_QUARTILE WHERE QUARTILE = '4') AS DIFFERENCE_Q4_MIN
                     FROM    POSITIVE_QUARTILE pq,
-                            questions q
+                            QUESTIONS q
                     WHERE   pq.QUESTION_NUMBER = q.qid
                     AND		pq.PROVIDER_NAME = 'University of Northumbria at Newcastle';";
 
-        $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level), "question" => $question];
+        $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level), "question" => $question, "year" => $year, "subject" => $subject];
         $result = $db->executeSQL($query, $parameter)->fetch(PDO::FETCH_ASSOC);
         if(!empty($result))
         {
@@ -279,22 +312,23 @@ class Access extends APIResponse
         }
     }
 
-    private function RetrieveResponseRate($db, $population, $mode, $level, $question)
+    private function RetrieveResponseRate($db, $population, $mode, $level, $question, $year, $subject)
     {
-        $query = "SELECT QUESTION_NUMBER,NUMBER_RESPONSES, NUMBER_POPULATION, PUB_RESPONSE_HEADCOUNT, PUB_RESPRATE
+        $query = "SELECT QUESTION_NUMBER,NUMBER_RESPONSES, NUMBER_POPULATION, PUB_RESPONSE_HEADCOUNT, PUB_RESPRATE, NOT_APPLICABLE
                     FROM nss_data
                     WHERE PROVIDER_NAME = 'University of Northumbria at Newcastle'
                     AND POPULATION = :population
                     AND MODE_OF_STUDY = :mode
                     AND LEVEL_OF_STUDY = :level
+                    AND YEAR = :year
+                    AND CAH_NAME = :subject
                     AND QUESTION_NUMBER = :question;";
 
-        $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level), "question" => $question];
+        $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level), "question" => $question, "year" => $year, "subject" => $subject];
         $result = $db->executeSQL($query, $parameter)->fetch(PDO::FETCH_ASSOC);
         if(!empty($result))
         {
             $detailArr = [];
-            $notApplicable = $result['PUB_RESPONSE_HEADCOUNT']-$result['NUMBER_RESPONSES'];
             $notParticipate = $result['NUMBER_POPULATION']-$result['PUB_RESPONSE_HEADCOUNT'];
 
             if($result['NUMBER_RESPONSES'] > 0)
@@ -306,11 +340,11 @@ class Access extends APIResponse
                 ]);
             }
 
-            if($notApplicable > 0)
+            if($result['NOT_APPLICABLE'] > 0)
             {
                 array_push($detailArr, [
                     "label" => "Not Applicable",
-                    "data" => $notApplicable,
+                    "data" => $result['NOT_APPLICABLE'],
                     "colorCode" => 1
                 ]);
             }

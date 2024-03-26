@@ -16,7 +16,7 @@ import {
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Bar } from "react-chartjs-2";
-import { IDataFilter, IQuartile } from "../interfaces";
+import { IDataFilter, IOption, IQuartile } from "../interfaces";
 
 ChartJS.register(
    ArcElement,
@@ -29,18 +29,13 @@ ChartJS.register(
    ChartDataLabels
 );
 
-export default function Difference({
-   question,
-   level,
-   mode,
-   population,
-}: IDataFilter) {
+export default function Difference({ option, question }: IOption) {
    const api = axios.create({
       baseURL: "https://w20003691.nuwebspace.co.uk/api/access",
    });
 
    const [data, setData] = useState<ChartDataset<"bar">[]>([]);
-   const [option, setOption] = useState<ChartOptions<"bar">>({
+   const [chartOption, setChartOption] = useState<ChartOptions<"bar">>({
       maintainAspectRatio: false,
       responsive: true,
       devicePixelRatio: 2,
@@ -50,11 +45,15 @@ export default function Difference({
       const fetchQuartile = async () => {
          let request =
             "?quartdiff&population=" +
-            population +
+            option?.popdrop +
             "&mode=" +
-            mode +
+            option?.modedrop +
             "&level=" +
-            level +
+            option?.leveldrop +
+            "&year=" +
+            option?.yeardrop +
+            "&subject=" +
+            option?.subdrop +
             "&q=" +
             question;
 
@@ -65,14 +64,21 @@ export default function Difference({
             "rgb(254,202,202",
             "rgb(248,113,113",
          ];
-         const retrievedData: ChartDataset<"bar">[] =
-            response.data.differences.map((diff) => ({
-               label: diff.label,
-               data: [diff.abs_data[0]],
-               backgroundColor: diff.current
-                  ? "rgb(71,85,105)"
-                  : colorCode[diff.colorCode] + ")",
-            }));
+         const retrievedData: ChartDataset<"bar">[] = response.data
+            ? response.data.differences.map((diff) => ({
+                 label: diff.label,
+                 data: [diff.abs_data[0]],
+                 backgroundColor: diff.current
+                    ? "rgb(71,85,105)"
+                    : colorCode[diff.colorCode] + ")",
+              }))
+            : [
+                 {
+                    label: "No data available",
+                    data: [0],
+                    backgroundColor: "rgb(0,0,0)",
+                 },
+              ];
          setData(retrievedData);
 
          const bar_option: ChartOptions<"bar"> = {
@@ -90,14 +96,14 @@ export default function Difference({
                      boxWidth: 18,
                      boxHeight: 18,
                      padding: 18,
-                     color:"black"
+                     color: "black",
                   },
                   onClick: function () {},
                   position: "bottom",
                },
                title: {
                   display: true,
-                  text: "Positive Reponses for " + question,
+                  text: "Positive Reponses for " + question  + " (" + option?.yeardrop +")",
                   font: {
                      size: 20,
                   },
@@ -110,7 +116,7 @@ export default function Difference({
                   callbacks: {
                      title: () => "",
                      label: function (context) {
-                        if (context.datasetIndex == 0) {
+                        if (context.datasetIndex == 0 && response.data) {
                            return `You are currently at ${context.dataset.label} with ${context.formattedValue} positive responses!`;
                         } else {
                            var i = context.datasetIndex;
@@ -137,7 +143,7 @@ export default function Difference({
             scales: {
                x: {
                   stacked: true,
-                  suggestedMax: response.data.resp_count,
+                  suggestedMax: (response.data)?response.data.resp_count:0,
                },
                y: {
                   stacked: true,
@@ -147,15 +153,15 @@ export default function Difference({
                },
             },
          };
-         setOption(bar_option);
+         setChartOption(bar_option);
       };
       fetchQuartile();
-   }, [question, population, mode, level]);
+   }, [question]);
 
    const bar_data: ChartData<"bar"> = {
       labels: ["No label"],
       datasets: data,
    };
 
-   return <Bar data={bar_data} options={option} />;
+   return <Bar data={bar_data} options={chartOption} />;
 }

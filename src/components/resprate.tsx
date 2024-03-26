@@ -9,17 +9,15 @@ import {
 } from "chart.js";
 import { useEffect, useRef, useState } from "react";
 import { Doughnut } from "react-chartjs-2";
-import { IDataFilter, IRespRate } from "../interfaces";
+import { IDataFilter, IOption, IRespRate } from "../interfaces";
 import axios from "axios";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function RespRate({
    question,
-   level,
-   mode,
-   population,
-}: IDataFilter) {
+   option
+}: IOption) {
    const api = axios.create({
       baseURL: "https://w20003691.nuwebspace.co.uk/api/access",
    });
@@ -28,7 +26,7 @@ export default function RespRate({
       labels: [],
       datasets: [],
    });
-   const [option, setOption] = useState<ChartOptions<"doughnut">>({
+   const [chartOption, setChartOption] = useState<ChartOptions<"doughnut">>({
       maintainAspectRatio: false,
       responsive: true,
       devicePixelRatio: 2,
@@ -53,11 +51,15 @@ export default function RespRate({
       const fetchRespRate = async () => {
          let request =
             "?resprate&population=" +
-            population +
+            option?.popdrop +
             "&mode=" +
-            mode +
+            option?.modedrop +
             "&level=" +
-            level +
+            option?.leveldrop +
+            "&year=" +
+            option?.yeardrop +
+            "&subject=" +
+            option?.subdrop +
             "&q=" +
             question;
 
@@ -69,15 +71,16 @@ export default function RespRate({
             "rgb(178,190,181)",
          ];
 
+         console.log(response.data);
          const data: ChartData<"doughnut"> = {
-            labels: response.data.detail.map((item) => item.label),
+            labels: (response.data)?response.data.detail.map((item) => item.label):["No data available"],
             datasets: [
                {
-                  label: "Value",
-                  data: response.data.detail.map((item) => item.data),
-                  backgroundColor: response.data.detail.map(
+                  label: "No data available",
+                  data: (response.data)?response.data.detail.map((item) => item.data):[0],
+                  backgroundColor: (response.data)?response.data.detail.map(
                      (item) => colorCode[item.colorCode]
-                  ),
+                  ):"rgb(0, 0, 0)",
                },
             ],
          };
@@ -103,7 +106,7 @@ export default function RespRate({
                },
                title: {
                   display: true,
-                  text: "Response Rate for " + question,
+                  text: "Response Rate for " + question + " (" + option?.yeardrop +")",
                   font: {
                      size: 20,
                   },
@@ -136,10 +139,10 @@ export default function RespRate({
                }
             },
          };
-         setOption(doughnutOption);
-         resprateRef.current = response.data.resp_rate;
+         setChartOption(doughnutOption);
+         resprateRef.current = (response.data)?response.data.resp_rate:0;
       };
       fetchRespRate();
-   }, [question, population, mode, level]);
-   return <Doughnut data={data} options={option} plugins={[doughnutLabel]}/>;
+   }, [question]);
+   return <Doughnut data={data} options={chartOption} plugins={[doughnutLabel]}/>;
 }

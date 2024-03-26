@@ -10,6 +10,14 @@ interface IQuestion {
    question: string;
 }
 
+interface IYear {
+   year: number;
+}
+
+interface ISubject {
+   subject: string;
+}
+
 interface IPositive {
    population: string;
    mode: string;
@@ -28,10 +36,17 @@ interface IPositiveResult {
 }
 
 interface IDataFilter {
-   question?: string;
-   level?: string;
-   mode?: string;
-   population?: string;
+   qdrop?: string,
+   popdrop?: string,
+   modedrop?: string,
+   leveldrop?: string,
+   yeardrop?: string,
+   subdrop?: string
+}
+
+interface IOption {
+   option? : IDataFilter
+   question? : string
    onClick?: (selectedQuestion: string) => void;
 }
 
@@ -68,9 +83,12 @@ interface IDetail {
 export type {
    IProvider,
    IQuestion,
+   IYear,
+   ISubject,
    IPositive,
    IPositiveResult,
    IDataFilter,
+   IOption,
    IQuartile,
    IDifference,
    IRespRate

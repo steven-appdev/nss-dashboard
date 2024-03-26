@@ -1,15 +1,12 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { IDataFilter, IPositive, IPositiveResult } from "../interfaces";
+import { IDataFilter, IOption, IPositive, IPositiveResult } from "../interfaces";
 import "../tail.css";
 
 export default function Positive({
-   question,
-   population,
-   mode,
-   level,
+   option,
    onClick,
-}: IDataFilter) {
+}: IOption) {
    const api = axios.create({
       baseURL: "https://w20003691.nuwebspace.co.uk/api/access",
    });
@@ -20,22 +17,30 @@ export default function Positive({
    useEffect(() => {
       const fetchPositives = async () => {
          let request =
-            "?positives&population=" +
-            population +
-            "&mode=" +
-            mode +
-            "&level=" +
-            level;
+         "?positives&population=" +
+         option?.popdrop +
+         "&mode=" +
+         option?.modedrop +
+         "&level=" +
+         option?.leveldrop +
+         "&year=" +
+         option?.yeardrop +
+         "&subject=" +
+         option?.subdrop;
          let response = await api.get<IPositive>(request);
-         setData(
-            question === "all"
-               ? response.data.results
-               : question?.charAt(0) === "Q" ? response.data.results.filter((item) => item.qid === question) : response.data.results.filter((item) => item.tid === question)
-               
-         );
+         if(response.data){
+            setData(
+               option?.qdrop === "all"
+                  ? response.data.results
+                  : option?.qdrop?.charAt(0) === "Q" ? response.data.results.filter((item) => item.qid ===  option?.qdrop) : response.data.results.filter((item) => item.tid === option?.qdrop)
+            );
+         }
+         else{
+            setData([]);
+         }
       };
       fetchPositives();
-   }, [selectedQuestion, question, population, mode, level]);
+   }, [selectedQuestion,  option]);
 
    useEffect(() => {
       if (onClick) {
