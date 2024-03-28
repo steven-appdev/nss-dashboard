@@ -129,6 +129,7 @@ export default function Gauge({question, option}: IOption){
                         font: {
                             size: 18,
                         },
+                        padding: 10
                     },
                     datalabels: {
                         display: false,
@@ -136,6 +137,9 @@ export default function Gauge({question, option}: IOption){
                     tooltip: {
                         enabled: false
                     }
+                },
+                layout:{
+                    padding: 10
                 }
             })
 
@@ -158,6 +162,7 @@ export default function Gauge({question, option}: IOption){
                         font: {
                             size: 18,
                         },
+                        padding: 10
                     },
                     datalabels: {
                         display: false,
@@ -165,6 +170,9 @@ export default function Gauge({question, option}: IOption){
                     tooltip: {
                         enabled: false
                     }
+                },
+                layout:{
+                    padding: 10
                 }
             })
         };
@@ -172,11 +180,11 @@ export default function Gauge({question, option}: IOption){
     },[question])
 
     return(
-        <div className="flex flex-col h-full">
-            <div className="border rounded-md h-1/2 py-2 mb-1">
+        <div className="flex flex-col h-full space-y-2">
+            <div className="border rounded-md h-[171px]">
                 <Doughnut data={positive} options={positiveOption} plugins={[positiveLabel]} />
             </div>
-            <div className="border rounded-md h-1/2 py-2 mt-1">
+            <div className="border rounded-md h-[171px]">
                 <Doughnut data={benchmark} options={benchmarkOption} plugins={[benchmarkLabel]} />
             </div>
         </div>

@@ -117,7 +117,7 @@ export default function RespRate({ question, option }: IOption) {
                   font: {
                      size: 18,
                   },
-                  padding: 15,
+                  padding: 10,
                },
                datalabels: {
                   display: false,
@@ -145,6 +145,9 @@ export default function RespRate({ question, option }: IOption) {
                   displayColors: false,
                },
             },
+            layout: {
+               padding: 10
+            }
          };
          setChartOption(doughnutOption);
          resprateRef.current = response.data ? response.data.resp_rate : 0;

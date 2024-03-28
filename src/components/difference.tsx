@@ -103,7 +103,7 @@ export default function Difference({ option, question }: IOption) {
                },
                title: {
                   display: true,
-                  text: "Positive Reponses for " + question?.substring(0,3)  + " (" + option?.yeardrop +")",
+                  text: "Quartile Difference for " + question?.substring(0,3)  + " (" + option?.yeardrop +")",
                   font: {
                      size: 20,
                   },
@@ -152,6 +152,9 @@ export default function Difference({ option, question }: IOption) {
                   },
                },
             },
+            layout: {
+               padding: 10
+            }
          };
          setChartOption(bar_option);
       };
