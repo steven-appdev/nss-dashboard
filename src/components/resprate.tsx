@@ -144,9 +144,6 @@ export default function RespRate({ question, option }: IOption) {
                   },
                   displayColors: false,
                },
-            },
-            layout: {
-               padding: 10
             }
          };
          setChartOption(doughnutOption);

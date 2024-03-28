@@ -86,6 +86,14 @@ interface IGauge {
    benchmark: number;
 }
 
+interface ICompareOption {
+   year?: string;
+   institution?: string;
+   population?: string;
+   mode? : string;
+   level? : string;
+}
+
 export type {
    IProvider,
    IQuestion,
@@ -98,5 +106,6 @@ export type {
    IQuartile,
    IDifference,
    IRespRate,
-   IGauge
+   IGauge,
+   ICompareOption
 };

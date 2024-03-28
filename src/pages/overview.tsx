@@ -24,7 +24,7 @@ export default function Overview(){
             </div>
             <div className="mt-5 mx-10 h-[350px]">
                 <div className="flex flex-row h-full">
-                <div className="border rounded-md w-[25%] mr-2">
+                <div className="border rounded-md w-[25%] py-[0.6rem] mr-2">
                     <RespRate 
                         question={question}
                         option={option}

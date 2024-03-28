@@ -76,19 +76,16 @@ export default function Positive({
                   <th className="border-b font-medium text-slate-800 py-3">
                      Question
                   </th>
-                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
-                     Number of Responses
-                  </th>
-                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
-                     Positivity Measure<br></br>(%)
-                  </th>
-                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
+                  <th className="border-b font-medium text-slate-800 py-3 w-[10%]">
                      NSS Benchmark<br></br>(%)
                   </th>
-                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
+                  <th className="border-b font-medium text-slate-800 py-3 w-[10%]">
+                     Positivity Measure<br></br>(%)
+                  </th>
+                  <th className="border-b font-medium text-slate-800 py-3 w-[10%]">
                      Times Rank
                   </th>
-                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
+                  <th className="border-b font-medium text-slate-800 py-3 w-[10%]">
                      Times Rank<br></br>(%)
                   </th>
                </tr>
@@ -102,9 +99,8 @@ export default function Positive({
                   >
                      <td className="p-4 text-slate-800">{item.qid}</td>
                      <td className="p-4 text-slate-800">{item.qtext}</td>
-                     <td className="p-4 text-slate-800">{item.resp_count}</td>
-                     <td className="p-4 text-slate-800">{item.positivity}</td>
                      <td className="p-4 text-slate-800">{item.benchmark}</td>
+                     <td className="p-4 text-slate-800">{item.positivity}</td>
                      <td>
                         <span
                            className={`px-3 py-1 inline-block w-20 rounded-full ${getColorCode(

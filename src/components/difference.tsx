@@ -105,7 +105,7 @@ export default function Difference({ option, question }: IOption) {
                   display: true,
                   text: "Quartile Difference for " + question?.substring(0,3)  + " (" + option?.yeardrop +")",
                   font: {
-                     size: 20,
+                     size: 18,
                   },
                   padding: 15,
                },
