@@ -4,7 +4,7 @@ import RespRate from "../components/resprate";
 import Difference from "../components/difference";
 import Positive from "../components/positive";
 import Navbar from "../components/navbar";
-import Gauge from "../components/gauge";
+import History from "../components/history";
 
 export default function Overview(){
     const [option, setOption] = useState<{ [key: string]: string }>({
@@ -24,19 +24,19 @@ export default function Overview(){
             </div>
             <div className="mt-5 mx-10 h-[350px]">
                 <div className="flex flex-row h-full">
-                <div className="border rounded-md w-[25%] py-[0.6rem] mr-2">
+                <div className="border rounded-md w-[26%] py-[0.6rem] mr-2">
                     <RespRate 
                         question={question}
                         option={option}
                     />
                 </div>
-                <div className="w-[25%] mr-2">
-                    <Gauge 
+                <div className="border rounded-md w-[37%] pl-5 pr-10 mr-2">
+                    <History 
                         question={question}
                         option={option}
                     />
                 </div>
-                <div className="border rounded-md w-[50%] px-10">
+                <div className="border rounded-md w-[37%] px-5">
                     <Difference 
                         question={question}
                         option={option}

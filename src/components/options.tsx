@@ -42,7 +42,7 @@ export default function Options({ onChange }: Props) {
 
    useEffect(() => {
       const fetchSubjects = async () => {
-         let response = await api.get<ISubject[]>("?subjects&year="+selectedYear);
+         let response = await api.get<ISubject[]>("?subjects&year="+selectedYear+"&provider=University of Northumbria at Newcastle");
          setSubjects(response.data);
          
          setSelectedOptions((prevState) => ({

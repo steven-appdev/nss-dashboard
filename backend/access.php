@@ -18,7 +18,11 @@ class Access extends APIResponse
                 }else if(isset($_REQUEST['years'])){
                     $result = $this->RetrieveAllYears($db);
                 }else if(isset($_REQUEST['subjects'])){
-                    $result = $this->RetrieveAllSubjects($db, $_REQUEST['year']);
+                    $result = $this->RetrieveAllSubjects($db, $_REQUEST['year'], $_REQUEST['provider']);
+                }else if(isset($_REQUEST['modes'])){
+                    $result = $this->RetrieveAllModes($db, $_REQUEST['year'], $_REQUEST['provider'], $_REQUEST['subject']);
+                }else if(isset($_REQUEST['levels'])){
+                    $result = $this->RetrieveAllLevels($db, $_REQUEST['year'], $_REQUEST['provider'], $_REQUEST['subject']);
                 }else if(isset($_REQUEST['positives'])){
                     $result = $this->RetrievePositives($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['year'],$_REQUEST['subject']);
                 }else if(isset($_REQUEST['quartdiff'])){
@@ -27,6 +31,8 @@ class Access extends APIResponse
                     $result = $this->RetrieveResponseRate($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q'], $_REQUEST['year'],$_REQUEST['subject']);
                 }else if(isset($_REQUEST['gauge'])){
                     $result = $this->RetrieveGauge($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q'], $_REQUEST['year'],$_REQUEST['subject']);
+                }else if(isset($_REQUEST['history'])){
+                    $result = $this->RetrieveHistory($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q'], $_REQUEST['provider'],$_REQUEST['subject']);
                 }else if(isset($_REQUEST['test'])){
                     $upload_max_size = ini_get('upload_max_filesize');
                     $result = ["result" => $upload_max_size];
@@ -86,10 +92,11 @@ class Access extends APIResponse
         return $result;      
     }
 
-    private function RetrieveAllProviders($db)
+    private function RetrieveAllProviders($db, $year)
     {
         $resultArr = [];
-        $query = "SELECT DISTINCT PROVIDER_NAME FROM nss_data";
+        $query = "SELECT DISTINCT PROVIDER_NAME FROM nss_data WHERE YEAR = :year";
+        $parameter = ["year" => $year];
         $result = $db->executeSQL($query)->fetchAll();
         if(!empty($result))
         {
@@ -97,10 +104,6 @@ class Access extends APIResponse
                 array_push($resultArr,["provider" => $data['PROVIDER_NAME']]);
             }
             return $resultArr;
-        }
-        else
-        {
-            throw new Exception("No content found!");
         }
     }
 
@@ -145,16 +148,31 @@ class Access extends APIResponse
         }
     }
 
-    private function RetrieveAllSubjects($db, $year)
+    private function RetrieveAllSubjects($db, $year, $provider)
     {
         $resultArr = [];
-        $query = "SELECT DISTINCT CAH_NAME FROM nss_data WHERE YEAR = :year";
-        $parameter = ["year" => $year];
+        $query = "SELECT DISTINCT CAH_NAME FROM nss_data WHERE YEAR = :year AND PROVIDER_NAME = :provider";
+        $parameter = ["year" => $year, "provider" => $provider];
         $result = $db->executeSQL($query, $parameter)->fetchAll();
         if(!empty($result))
         {
             foreach($result as $data){
                 array_push($resultArr, ["subject" => $data["CAH_NAME"]]);
+            }
+            return $resultArr;
+        }
+    }
+
+    private function RetrieveAllModes($db, $year, $provider, $subject)
+    {
+        $resultArr = [];
+        $query = "SELECT DISTINCT MODE_OF_STUDY FROM nss_data WHERE YEAR = :year AND PROVIDER_NAME = :provider AND CAH_NAME = :subject";
+        $parameter = ["year" => $year, "provider" => $provider, "subject" => $subject];
+        $result = $db->executeSQL($query, $parameter)->fetchAll();
+        if(!empty($result))
+        {
+            foreach($result as $data){
+                array_push($resultArr, ["mode" => $data["MODE_OF_STUDY"]]);
             }
             return $resultArr;
         }
@@ -390,6 +408,31 @@ class Access extends APIResponse
                 "positivity" => $result["POSITIVITY_MEASURE"],
                 "benchmark" => $result["BENCHMARK"]
             ];
+        }
+    }
+
+    private function RetrieveHistory($db, $population, $mode, $level, $question, $provider, $subject)
+    {
+        $resultArr = [];
+        $query = "SELECT YEAR, POSITIVITY_MEASURE, BENCHMARK FROM nss_data 
+                    WHERE POPULATION = :population 
+                    AND MODE_OF_STUDY = :mode 
+                    AND LEVEL_OF_STUDY = :level
+                    AND CAH_NAME = :subject
+                    AND QUESTION_NUMBER = :question
+                    AND PROVIDER_NAME = :provider";
+        $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level), "subject" => $subject, "question" => $question, "provider" => $provider];
+        $result = $db->executeSQL($query, $parameter)->fetchAll();
+        if(!empty($result))
+        {
+            foreach($result as $data){
+                array_push($resultArr, [
+                    "year" => $data["YEAR"],
+                    "positivity" => $data["POSITIVITY_MEASURE"],
+                    "benchmark" => $data["BENCHMARK"]
+                ]);
+            }
+            return $resultArr;
         }
     }
 

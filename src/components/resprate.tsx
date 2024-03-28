@@ -99,8 +99,8 @@ export default function RespRate({ question, option }: IOption) {
                      font: {
                         size: 16,
                      },
-                     boxWidth: 18,
-                     boxHeight: 18,
+                     boxWidth: 14,
+                     boxHeight: 14,
                      padding: 18,
                      color: "black",
                   },

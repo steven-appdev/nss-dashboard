@@ -81,17 +81,18 @@ interface IDetail {
    colorCode: number;
 }
 
-interface IGauge {
-   positivity: number;
-   benchmark: number;
-}
-
 interface ICompareOption {
    year?: string;
    institution?: string;
    population?: string;
    mode? : string;
    level? : string;
+}
+
+interface IHistory {
+   year: string;
+   positivity: number;
+   benchmark: number;
 }
 
 export type {
@@ -106,6 +107,6 @@ export type {
    IQuartile,
    IDifference,
    IRespRate,
-   IGauge,
-   ICompareOption
+   ICompareOption,
+   IHistory
 };

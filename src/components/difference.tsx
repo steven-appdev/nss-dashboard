@@ -93,9 +93,8 @@ export default function Difference({ option, question }: IOption) {
                      font: {
                         size: 16,
                      },
-                     boxWidth: 18,
-                     boxHeight: 18,
-                     padding: 18,
+                     boxWidth: 14,
+                     boxHeight: 14,
                      color: "black",
                   },
                   onClick: function () {},
@@ -107,7 +106,7 @@ export default function Difference({ option, question }: IOption) {
                   font: {
                      size: 18,
                   },
-                  padding: 15,
+                  padding: 9,
                },
                datalabels: {
                   display: false,

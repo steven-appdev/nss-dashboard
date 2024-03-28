@@ -34,6 +34,16 @@ export default function CompareForm(){
                             <option>University Name</option>
                         </select>
                     </div>
+                    <div className="flex flex-col">
+                        <label className="text-slate-100 font-medium text-left">Subject</label>
+                        <select
+                            className="p-1 text-slate-950 font-normal rounded-sm"
+                            name="subdrop"
+                            id="subdrop"
+                        >
+                            <option>Subject</option>
+                        </select>
+                    </div>
                     <div className="grid grid-cols-3 gap-5">
                         <div className="flex flex-col">
                             <label className="text-slate-100 font-medium text-left">Population</label>
@@ -89,6 +99,16 @@ export default function CompareForm(){
                             id="unidrop"
                         >
                             <option>University Name</option>
+                        </select>
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-slate-100 font-medium text-left">Subject</label>
+                        <select
+                            className="p-1 text-slate-950 font-normal rounded-sm"
+                            name="subdrop"
+                            id="subdrop"
+                        >
+                            <option>Subject</option>
                         </select>
                     </div>
                     <div className="grid grid-cols-3 gap-5">
