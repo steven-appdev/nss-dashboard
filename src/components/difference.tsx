@@ -55,7 +55,7 @@ export default function Difference({ option, question }: IOption) {
             "&subject=" +
             option?.subdrop +
             "&q=" +
-            question;
+            question?.substring(0, 3);
 
          let response = await api.get<IQuartile>(request);
          const colorCode = [
@@ -103,7 +103,7 @@ export default function Difference({ option, question }: IOption) {
                },
                title: {
                   display: true,
-                  text: "Positive Reponses for " + question  + " (" + option?.yeardrop +")",
+                  text: "Positive Reponses for " + question?.substring(0,3)  + " (" + option?.yeardrop +")",
                   font: {
                      size: 20,
                   },

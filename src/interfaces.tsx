@@ -31,6 +31,7 @@ interface IPositiveResult {
    tid: string;
    resp_count: number;
    positivity: number;
+   benchmark: number;
    rank: number;
    rank_percentage: number;
 }
@@ -80,6 +81,11 @@ interface IDetail {
    colorCode: number;
 }
 
+interface IGauge {
+   positivity: number;
+   benchmark: number;
+}
+
 export type {
    IProvider,
    IQuestion,
@@ -91,5 +97,6 @@ export type {
    IOption,
    IQuartile,
    IDifference,
-   IRespRate
+   IRespRate,
+   IGauge
 };

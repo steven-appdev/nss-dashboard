@@ -62,30 +62,34 @@ export default function Positive({
 
    const handleClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
       setSelectedQuestion(event.currentTarget.id);
+      console.log(event.currentTarget.id)
    };
 
    return (
-      <div className="flex-1 m-10 overflow-scroll overflow-x-hidden border rounded-md">
+      <div className="flex-1 mx-10 mt-5 mb-6 overflow-scroll overflow-x-hidden border rounded-md">
          <table className="text-md w-full">
             <thead>
                <tr className="bg-slate-300 sticky top-0">
-                  <th className="border-b font-medium text-slate-700 py-4 w-[10%]">
-                     Question ID
+                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
+                     QID
                   </th>
-                  <th className="border-b font-medium text-slate-700 py-4">
+                  <th className="border-b font-medium text-slate-800 py-3">
                      Question
                   </th>
-                  <th className="border-b font-medium text-slate-700 py-5 w-[15%]">
+                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
                      Number of Responses
                   </th>
-                  <th className="border-b font-medium text-slate-700 py-4 w-[8%]">
-                     Positivity Measure (%)
+                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
+                     Positivity Measure<br></br>(%)
                   </th>
-                  <th className="border-b font-medium text-slate-700 py-4 w-[8%]">
-                     Rank
+                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
+                     NSS Benchmark<br></br>(%)
                   </th>
-                  <th className="border-b font-medium text-slate-700 py-4 w-[8%]">
-                     Rank (%)
+                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
+                     Times Rank
+                  </th>
+                  <th className="border-b font-medium text-slate-800 py-3 w-[8%]">
+                     Times Rank<br></br>(%)
                   </th>
                </tr>
             </thead>
@@ -93,21 +97,14 @@ export default function Positive({
                {data?.map((item) => (
                   <tr
                      className="even:bg-slate-100 hover:bg-gray-200 transition-colors"
-                     id={item.qid}
+                     id={item.qid+"_"+option?.yeardrop+"_"+option?.subdrop+"_"+option?.popdrop+"_"+option?.modedrop+"_"+option?.leveldrop}
                      onClick={handleClick}
                   >
-                     <td className="p-4 text-slate-600">{item.qid}</td>
-                     <td className="p-4 text-slate-600">{item.qtext}</td>
-                     <td className="p-4 text-slate-600">{item.resp_count}</td>
-                     <td>
-                        <span
-                           className={`px-3 py-1 inline-block w-20 rounded-full ${getColorCode(
-                              item.rank_percentage
-                           )}`}
-                        >
-                           {item.positivity}
-                        </span>
-                     </td>
+                     <td className="p-4 text-slate-800">{item.qid}</td>
+                     <td className="p-4 text-slate-800">{item.qtext}</td>
+                     <td className="p-4 text-slate-800">{item.resp_count}</td>
+                     <td className="p-4 text-slate-800">{item.positivity}</td>
+                     <td className="p-4 text-slate-800">{item.benchmark}</td>
                      <td>
                         <span
                            className={`px-3 py-1 inline-block w-20 rounded-full ${getColorCode(

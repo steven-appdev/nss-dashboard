@@ -5,19 +5,16 @@ import {
    Legend,
    ChartOptions,
    ChartData,
-   Plugin
+   Plugin,
 } from "chart.js";
 import { useEffect, useRef, useState } from "react";
 import { Doughnut } from "react-chartjs-2";
-import { IDataFilter, IOption, IRespRate } from "../interfaces";
+import { IOption, IRespRate } from "../interfaces";
 import axios from "axios";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function RespRate({
-   question,
-   option
-}: IOption) {
+export default function RespRate({ question, option }: IOption) {
    const api = axios.create({
       baseURL: "https://w20003691.nuwebspace.co.uk/api/access",
    });
@@ -32,20 +29,20 @@ export default function RespRate({
       devicePixelRatio: 2,
    });
    const resprateRef = useRef<number>(0);
-   const doughnutLabel:Plugin<"doughnut"> = ({
+   const doughnutLabel: Plugin<"doughnut"> = {
       id: "doughnutLabel",
-      afterDatasetDraw(chart){
-         const {ctx} = chart;
+      afterDatasetDraw(chart) {
+         const { ctx } = chart;
          ctx.save();
          const xCoor = chart.getDatasetMeta(0).data[0].x;
          const yCoor = chart.getDatasetMeta(0).data[0].y;
-         ctx.font = '28px sans-serif';
-         ctx.fillStyle = 'rgb(0, 0, 0)';
+         ctx.font = "28px sans-serif";
+         ctx.fillStyle = "rgb(0, 0, 0)";
          ctx.textAlign = "center";
          ctx.textBaseline = "middle";
-         ctx.fillText(resprateRef.current+"%", xCoor, yCoor);
+         ctx.fillText(resprateRef.current + "%", xCoor, yCoor);
       },
-   })
+   };
 
    useEffect(() => {
       const fetchRespRate = async () => {
@@ -61,7 +58,7 @@ export default function RespRate({
             "&subject=" +
             option?.subdrop +
             "&q=" +
-            question;
+            question?.substring(0, 3);
 
          let response = await api.get<IRespRate>(request);
 
@@ -71,16 +68,21 @@ export default function RespRate({
             "rgb(178,190,181)",
          ];
 
-         console.log(response.data);
          const data: ChartData<"doughnut"> = {
-            labels: (response.data)?response.data.detail.map((item) => item.label):["No data available"],
+            labels: response.data
+               ? response.data.detail.map((item) => item.label)
+               : ["No data available"],
             datasets: [
                {
                   label: "No data available",
-                  data: (response.data)?response.data.detail.map((item) => item.data):[0],
-                  backgroundColor: (response.data)?response.data.detail.map(
-                     (item) => colorCode[item.colorCode]
-                  ):"rgb(0, 0, 0)",
+                  data: response.data
+                     ? response.data.detail.map((item) => item.data)
+                     : [0],
+                  backgroundColor: response.data
+                     ? response.data.detail.map(
+                          (item) => colorCode[item.colorCode]
+                       )
+                     : "rgb(0, 0, 0)",
                },
             ],
          };
@@ -106,9 +108,14 @@ export default function RespRate({
                },
                title: {
                   display: true,
-                  text: "Response Rate for " + question + " (" + option?.yeardrop +")",
+                  text:
+                     "Response Rate for " +
+                     question?.substring(0, 3) +
+                     " (" +
+                     option?.yeardrop +
+                     ")",
                   font: {
-                     size: 20,
+                     size: 18,
                   },
                   padding: 15,
                },
@@ -118,15 +125,15 @@ export default function RespRate({
                tooltip: {
                   callbacks: {
                      title: () => "",
-                     label: function(context){
-                        if(context.label === "Responded"){
-                           return `${context.formattedValue} student(s) have responded to this question.`
-                        } else if(context.label === "Not Applicable"){
-                           return `${context.formattedValue} student(s) have responded with "Not Applicable".`
-                        } else if(context.label === "Not Participate"){
-                           return `${context.formattedValue} student(s) did not participate in this question.`
+                     label: function (context) {
+                        if (context.label === "Responded") {
+                           return `${context.formattedValue} student(s) have responded to this question.`;
+                        } else if (context.label === "Not Applicable") {
+                           return `${context.formattedValue} student(s) have responded with "Not Applicable".`;
+                        } else if (context.label === "Not Participate") {
+                           return `${context.formattedValue} student(s) did not participate in this question.`;
                         }
-                     }
+                     },
                   },
                   bodyFont: {
                      size: 18,
@@ -136,13 +143,15 @@ export default function RespRate({
                      duration: 100,
                   },
                   displayColors: false,
-               }
+               },
             },
          };
          setChartOption(doughnutOption);
-         resprateRef.current = (response.data)?response.data.resp_rate:0;
+         resprateRef.current = response.data ? response.data.resp_rate : 0;
       };
       fetchRespRate();
    }, [question]);
-   return <Doughnut data={data} options={chartOption} plugins={[doughnutLabel]}/>;
+   return (
+      <Doughnut data={data} options={chartOption} plugins={[doughnutLabel]} />
+   );
 }

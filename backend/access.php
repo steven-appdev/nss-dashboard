@@ -25,6 +25,8 @@ class Access extends APIResponse
                     $result = $this->RetrieveQuartileDiff($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q'], $_REQUEST['year'],$_REQUEST['subject']);
                 }else if(isset($_REQUEST['resprate'])){
                     $result = $this->RetrieveResponseRate($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q'], $_REQUEST['year'],$_REQUEST['subject']);
+                }else if(isset($_REQUEST['gauge'])){
+                    $result = $this->RetrieveGauge($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q'], $_REQUEST['year'],$_REQUEST['subject']);
                 }else if(isset($_REQUEST['test'])){
                     $upload_max_size = ini_get('upload_max_filesize');
                     $result = ["result" => $upload_max_size];
@@ -172,7 +174,7 @@ class Access extends APIResponse
                     ),
                     POSITIVE_RANK AS (
                         SELECT *, ROUND(100-((RANKING * 100)/TOTAL_PROVIDER)) AS RANK_PERCENTAGE FROM
-                        (SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE, NUMBER_RESPONSES,
+                        (SELECT  POPULATION, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, QUESTION_NUMBER, POSITIVITY_MEASURE, NUMBER_RESPONSES, BENCHMARK,
                                 RANK() OVER (PARTITION BY QUESTION_NUMBER ORDER BY POSITIVITY_MEASURE DESC) AS RANKING,
                                 COUNT(*) OVER (PARTITION BY QUESTION_NUMBER) AS TOTAL_PROVIDER
                         FROM    nss_data
@@ -184,7 +186,7 @@ class Access extends APIResponse
                         AND     PROVIDER_NAME IN (SELECT uname FROM times_uni)) AS UNIVERSITY_RANK
                         WHERE   PROVIDER_NAME = 'University of Northumbria at Newcastle'
                     )
-                    SELECT  pr.POPULATION, pr.MODE_OF_STUDY, pr.LEVEL_OF_STUDY, q.*, NUMBER_RESPONSES, pr.POSITIVITY_MEASURE AS POSITIVITY, pr.RANKING AS POSITIVITY_RANK, RANK_PERCENTAGE
+                    SELECT  pr.POPULATION, pr.MODE_OF_STUDY, pr.LEVEL_OF_STUDY, q.*, NUMBER_RESPONSES, pr.POSITIVITY_MEASURE AS POSITIVITY, pr.RANKING AS POSITIVITY_RANK, RANK_PERCENTAGE, pr.BENCHMARK
                     FROM    QUESTIONS q, POSITIVE_RANK pr
                     WHERE   q.qid = pr.QUESTION_NUMBER
                     ORDER BY CASE WHEN tid IS NULL THEN 1 ELSE 0 END, tid, qid";
@@ -200,6 +202,7 @@ class Access extends APIResponse
                     "tid" => $data['tid'],
                     "resp_count" => $data['NUMBER_RESPONSES'],
                     "positivity" => $data['POSITIVITY'],
+                    "benchmark" => $data['BENCHMARK'],
                     "rank" =>$data['POSITIVITY_RANK'],
                     "rank_percentage" => $data['RANK_PERCENTAGE']
                 ]);
@@ -363,6 +366,29 @@ class Access extends APIResponse
                 "num_pop" => $result['NUMBER_POPULATION'],
                 "resp_rate" => $result['PUB_RESPRATE'],
                 "detail" => $detailArr
+            ];
+        }
+    }
+
+    private function RetrieveGauge($db, $population, $mode, $level, $question, $year, $subject)
+    {
+        $query = "SELECT POSITIVITY_MEASURE, BENCHMARK 
+                    FROM    nss_data
+                    WHERE   POPULATION = :population
+                    AND     MODE_OF_STUDY = :mode
+                    AND     LEVEL_OF_STUDY = :level
+                    AND     YEAR = :year
+                    AND     CAH_NAME = :subject
+                    AND     QUESTION_NUMBER = :question
+                    AND     PROVIDER_NAME = 'University of Northumbria at Newcastle'";
+
+        $parameter = ["population" => $population, "mode" => $this->CheckMode($mode), "level" => $this->CheckLevel($level), "question" => $question, "year" => $year, "subject" => $subject];
+        $result = $db->executeSQL($query, $parameter)->fetch(PDO::FETCH_ASSOC);
+        if(!empty($result))
+        {
+            return [
+                "positivity" => $result["POSITIVITY_MEASURE"],
+                "benchmark" => $result["BENCHMARK"]
             ];
         }
     }
