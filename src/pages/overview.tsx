@@ -22,7 +22,7 @@ export default function Overview(){
             <div className="flex flex-wrap bg-slate-600 pt-3 pb-6 justify-center">
                 <Options onChange={setOption} />
             </div>
-            <div className="mt-5 mx-10 h-[350px]">
+            <div className="mt-5 mx-10 h-[340px]">
                 <div className="flex flex-row h-full">
                 <div className="border rounded-md w-[26%] py-[0.6rem] mr-2">
                     <RespRate 

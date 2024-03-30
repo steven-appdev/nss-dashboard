@@ -18,6 +18,18 @@ interface ISubject {
    subject: string;
 }
 
+interface IPopulation {
+   population: string;
+}
+
+interface IMode {
+   mode: string;
+}
+
+interface ILevel {
+   level: string;
+}
+
 interface IPositive {
    population: string;
    mode: string;
@@ -82,8 +94,11 @@ interface IDetail {
 }
 
 interface ICompareOption {
-   year?: string;
-   institution?: string;
+   year?: number;
+   provider?: string;
+   provider_id?: string;
+   subject?: string;
+   subject_id?: string;
    population?: string;
    mode? : string;
    level? : string;
@@ -100,6 +115,9 @@ export type {
    IQuestion,
    IYear,
    ISubject,
+   IPopulation,
+   IMode,
+   ILevel,
    IPositive,
    IPositiveResult,
    IDataFilter,

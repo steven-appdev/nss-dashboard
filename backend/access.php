@@ -12,7 +12,7 @@ class Access extends APIResponse
         if($_SERVER['REQUEST_METHOD'] === 'GET'){
             try{
                 if(isset($_REQUEST['providers'])){
-                    $result = $this->RetrieveAllProviders($db);
+                    $result = $this->RetrieveAllProviders($db, $_REQUEST['year']);
                 }else if(isset($_REQUEST['questions'])){
                     $result = $this->RetrieveAllQuestions($db);
                 }else if(isset($_REQUEST['years'])){
@@ -23,6 +23,8 @@ class Access extends APIResponse
                     $result = $this->RetrieveAllModes($db, $_REQUEST['year'], $_REQUEST['provider'], $_REQUEST['subject']);
                 }else if(isset($_REQUEST['levels'])){
                     $result = $this->RetrieveAllLevels($db, $_REQUEST['year'], $_REQUEST['provider'], $_REQUEST['subject']);
+                }else if(isset($_REQUEST['populations'])){
+                    $result = $this->RetrieveAllPopulations($db, $_REQUEST['year'], $_REQUEST['provider'], $_REQUEST['subject']);
                 }else if(isset($_REQUEST['positives'])){
                     $result = $this->RetrievePositives($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['year'],$_REQUEST['subject']);
                 }else if(isset($_REQUEST['quartdiff'])){
@@ -97,7 +99,7 @@ class Access extends APIResponse
         $resultArr = [];
         $query = "SELECT DISTINCT PROVIDER_NAME FROM nss_data WHERE YEAR = :year";
         $parameter = ["year" => $year];
-        $result = $db->executeSQL($query)->fetchAll();
+        $result = $db->executeSQL($query, $parameter)->fetchAll();
         if(!empty($result))
         {
             foreach($result as $data){
@@ -173,6 +175,36 @@ class Access extends APIResponse
         {
             foreach($result as $data){
                 array_push($resultArr, ["mode" => $data["MODE_OF_STUDY"]]);
+            }
+            return $resultArr;
+        }
+    }
+
+    private function RetrieveAllPopulations($db, $year, $provider, $subject)
+    {
+        $resultArr = [];
+        $query = "SELECT DISTINCT POPULATION FROM nss_data WHERE YEAR = :year AND PROVIDER_NAME = :provider AND CAH_NAME = :subject";
+        $parameter = ["year" => $year, "provider" => $provider, "subject" => $subject];
+        $result = $db->executeSQL($query, $parameter)->fetchAll();
+        if(!empty($result))
+        {
+            foreach($result as $data){
+                array_push($resultArr, ["population" => $data["POPULATION"]]);
+            }
+            return $resultArr;
+        }
+    }
+
+    private function RetrieveAllLevels($db, $year, $provider, $subject)
+    {
+        $resultArr = [];
+        $query = "SELECT DISTINCT LEVEL_OF_STUDY FROM nss_data WHERE YEAR = :year AND PROVIDER_NAME = :provider AND CAH_NAME = :subject";
+        $parameter = ["year" => $year, "provider" => $provider, "subject" => $subject];
+        $result = $db->executeSQL($query, $parameter)->fetchAll();
+        if(!empty($result))
+        {
+            foreach($result as $data){
+                array_push($resultArr, ["level" => $data["LEVEL_OF_STUDY"]]);
             }
             return $resultArr;
         }

@@ -68,7 +68,7 @@ export default function RespRate({ question, option }: IOption) {
             "rgb(178,190,181)",
          ];
 
-         const data: ChartData<"doughnut"> = {
+         setData({
             labels: response.data
                ? response.data.detail.map((item) => item.label)
                : ["No data available"],
@@ -85,8 +85,7 @@ export default function RespRate({ question, option }: IOption) {
                      : "rgb(0, 0, 0)",
                },
             ],
-         };
-         setData(data);
+         });
 
          const doughnutOption: ChartOptions<"doughnut"> = {
             maintainAspectRatio: false,
