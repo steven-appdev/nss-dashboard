@@ -80,16 +80,6 @@ export default function CompareLine({comparison}:Props){
                         title: (context) => {
                             return context[0].label+": "+comparison.result[context[0].dataIndex].qtext
                         },
-                        label: (context) => {
-                            if(context.dataset.label === "Positivity Measure")
-                            {
-                                return `We achieved ${context.formattedValue}% positive measure on ${context.label}`
-                            }
-                            else if(context.dataset.label === "NSS Benchmark")
-                            {
-                                return `We achieved ${context.formattedValue}% benchmark score on ${context.label}`
-                            }
-                        },
                     },
                     bodyFont:{
                         size: 15
