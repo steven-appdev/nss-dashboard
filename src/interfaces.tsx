@@ -110,6 +110,23 @@ interface IHistory {
    benchmark: number;
 }
 
+interface ICompareResult {
+   qid: string;
+   qtext: string;
+   positive_x: number;
+   positive_y: number;
+   benchmark_x: number;
+   benchmark_y: number;
+}
+
+interface ICompare {
+   provider_x: string;
+   year_x: number;
+   provider_y: string;
+   year_y: number;
+   result: ICompareResult[];
+}
+
 export type {
    IProvider,
    IQuestion,
@@ -126,5 +143,7 @@ export type {
    IDifference,
    IRespRate,
    ICompareOption,
-   IHistory
+   IHistory,
+   ICompareResult,
+   ICompare
 };

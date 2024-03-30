@@ -26,6 +26,7 @@ ChartJS.register(
 );
 
 export default function History({ option, question }: IOption){
+    
     const api = axios.create({
         baseURL: "https://w20003691.nuwebspace.co.uk/api/access",
     });

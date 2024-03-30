@@ -484,7 +484,7 @@ class Access extends APIResponse
                         FROM nss_theme AS t
                     ),
                     DATAX AS (
-                        SELECT QUESTION_NUMBER, PROVIDER_NAME, POSITIVITY_MEASURE, BENCHMARK
+                        SELECT YEAR, QUESTION_NUMBER, PROVIDER_NAME, POSITIVITY_MEASURE, BENCHMARK
                         FROM nss_data
                         WHERE YEAR = :yearx 
                         AND PROVIDER_NAME = :providerx
@@ -494,7 +494,7 @@ class Access extends APIResponse
                         AND LEVEL_OF_STUDY = :levelx
                     ),
                     DATAY AS (
-                        SELECT QUESTION_NUMBER, PROVIDER_NAME, POSITIVITY_MEASURE, BENCHMARK
+                        SELECT YEAR, QUESTION_NUMBER, PROVIDER_NAME, POSITIVITY_MEASURE, BENCHMARK
                         FROM nss_data
                         WHERE YEAR = :yeary 
                         AND PROVIDER_NAME = :providery
@@ -503,7 +503,7 @@ class Access extends APIResponse
                         AND MODE_OF_STUDY = :modey
                         AND LEVEL_OF_STUDY = :levely
                     )
-                    SELECT q.*, x.POSITIVITY_MEASURE AS POSITIVE_X, y.POSITIVITY_MEASURE AS POSITIVE_Y, x.BENCHMARK AS BENCHMARK_X, y.BENCHMARK AS BENCHMARK_Y
+                    SELECT q.*, x.YEAR AS YEAR_X, x.PROVIDER_NAME AS PROVIDER_X, x.POSITIVITY_MEASURE AS POSITIVE_X, x.BENCHMARK AS BENCHMARK_X, y.YEAR AS YEAR_Y, y.PROVIDER_NAME AS PROVIDER_Y, y.POSITIVITY_MEASURE AS POSITIVE_Y, y.BENCHMARK AS BENCHMARK_Y
                     FROM QUESTIONS q
                     LEFT JOIN DATAX AS x ON q.qid = x.QUESTION_NUMBER
                     LEFT JOIN DATAY as y on q.qid = y.QUESTION_NUMBER
@@ -523,7 +523,13 @@ class Access extends APIResponse
                     "benchmark_y" => $data["BENCHMARK_Y"]
                 ]);
             }
-            return $resultArr;
+            return [
+                "provider_x" => $result[0]["PROVIDER_X"],
+                "year_x" => $result[0]["YEAR_X"],
+                "provider_y" => $result[0]["PROVIDER_Y"],
+                "year_y" => $result[0]["YEAR_Y"],
+                "result" => $resultArr
+            ];
         }
     }
 

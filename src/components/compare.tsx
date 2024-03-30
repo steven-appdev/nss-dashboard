@@ -83,6 +83,13 @@ export default function Compare({ onChange }: Props){
 
             let level = await api.get<ILevel[]>("?levels&year="+selectedOptions.year+"&provider="+selectedOptions.provider+"&subject="+selectedOptions.subject)
             setLevels(level.data);
+
+            setSelectedOptions((prevState) => ({
+                ...prevState,
+                population: population.data[0].population,
+                mode: mode.data[0].mode,
+                level: level.data[0].level
+            }))
         }
         if(selectedOptions.subject != "null")
         {
