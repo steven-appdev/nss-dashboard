@@ -35,6 +35,9 @@ class Access extends APIResponse
                     $result = $this->RetrieveGauge($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q'], $_REQUEST['year'],$_REQUEST['subject']);
                 }else if(isset($_REQUEST['history'])){
                     $result = $this->RetrieveHistory($db, $_REQUEST['population'], $_REQUEST['mode'], $_REQUEST['level'], $_REQUEST['q'], $_REQUEST['provider'],$_REQUEST['subject']);
+                }else if(isset($_REQUEST['compare'])){
+                    $result = $this->RetrieveCompare($db, $_REQUEST['yearx'], $_REQUEST['populationx'], $_REQUEST['modex'], $_REQUEST['levelx'], $_REQUEST['providerx'],$_REQUEST['subjectx'],
+                                                     $_REQUEST['yeary'], $_REQUEST['populationy'], $_REQUEST['modey'], $_REQUEST['levely'], $_REQUEST['providery'],$_REQUEST['subjecty']);
                 }else if(isset($_REQUEST['test'])){
                     $upload_max_size = ini_get('upload_max_filesize');
                     $result = ["result" => $upload_max_size];
@@ -462,6 +465,62 @@ class Access extends APIResponse
                     "year" => $data["YEAR"],
                     "positivity" => $data["POSITIVITY_MEASURE"],
                     "benchmark" => $data["BENCHMARK"]
+                ]);
+            }
+            return $resultArr;
+        }
+    }
+
+    private function RetrieveCompare($db, $yearx, $populationx, $modex, $levelx, $providerx, $subjectx, $yeary, $populationy, $modey, $levely, $providery, $subjecty)
+    {
+        $resultArr = [];
+        $query = "WITH
+                    QUESTIONS AS (
+                        SELECT tq.tid, tq.qid, q.qtext
+                        FROM nss_themequestions AS tq, nss_question AS q
+                        WHERE tq.qid = q.qid
+                        UNION
+                        SELECT t.tid, t.tid AS qid, t.ttext AS qtext
+                        FROM nss_theme AS t
+                    ),
+                    DATAX AS (
+                        SELECT QUESTION_NUMBER, PROVIDER_NAME, POSITIVITY_MEASURE, BENCHMARK
+                        FROM nss_data
+                        WHERE YEAR = :yearx 
+                        AND PROVIDER_NAME = :providerx
+                        AND CAH_NAME = :subjectx
+                        AND POPULATION = :populationx
+                        AND MODE_OF_STUDY = :modex
+                        AND LEVEL_OF_STUDY = :levelx
+                    ),
+                    DATAY AS (
+                        SELECT QUESTION_NUMBER, PROVIDER_NAME, POSITIVITY_MEASURE, BENCHMARK
+                        FROM nss_data
+                        WHERE YEAR = :yeary 
+                        AND PROVIDER_NAME = :providery
+                        AND CAH_NAME = :subjecty
+                        AND POPULATION = :populationy
+                        AND MODE_OF_STUDY = :modey
+                        AND LEVEL_OF_STUDY = :levely
+                    )
+                    SELECT q.*, x.POSITIVITY_MEASURE AS POSITIVE_X, y.POSITIVITY_MEASURE AS POSITIVE_Y, x.BENCHMARK AS BENCHMARK_X, y.BENCHMARK AS BENCHMARK_Y
+                    FROM QUESTIONS q
+                    LEFT JOIN DATAX AS x ON q.qid = x.QUESTION_NUMBER
+                    LEFT JOIN DATAY as y on q.qid = y.QUESTION_NUMBER
+                    ORDER BY CASE WHEN tid IS NULL THEN 1 ELSE 0 END, tid, qid;";
+        $parameter = ["yearx" => $yearx, "providerx" => $providerx, "subjectx" => $subjectx, "populationx" => $populationx, "modex" => $modex, "levelx" => $levelx,
+                      "yeary" => $yeary, "providery" => $providery, "subjecty" => $subjecty, "populationy" => $populationy, "modey" => $modey, "levely" => $levely];
+        $result = $db->executeSQL($query, $parameter)->fetchAll();
+        if(!empty($result))
+        {
+            foreach($result as $data){
+                array_push($resultArr, [
+                    "qid" => $data["qid"],
+                    "qtext" => $data["qtext"],
+                    "positive_x" => $data["POSITIVE_X"],
+                    "positive_y" => $data["POSITIVE_Y"],
+                    "benchmark_x" => $data["BENCHMARK_X"],
+                    "benchmark_y" => $data["BENCHMARK_Y"]
                 ]);
             }
             return $resultArr;
