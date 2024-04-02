@@ -38,9 +38,8 @@ class Access extends APIResponse
                 }else if(isset($_REQUEST['compare'])){
                     $result = $this->RetrieveCompare($db, $_REQUEST['yearx'], $_REQUEST['populationx'], $_REQUEST['modex'], $_REQUEST['levelx'], $_REQUEST['providerx'],$_REQUEST['subjectx'],
                                                      $_REQUEST['yeary'], $_REQUEST['populationy'], $_REQUEST['modey'], $_REQUEST['levely'], $_REQUEST['providery'],$_REQUEST['subjecty']);
-                }else if(isset($_REQUEST['test'])){
-                    $upload_max_size = ini_get('upload_max_filesize');
-                    $result = ["result" => $upload_max_size];
+                }else if(isset($_REQUEST['integration'])){
+                    $result = $this->RetrieveIntegration($db);
                 }
                 $this->setResponse($result);
             }
@@ -530,6 +529,21 @@ class Access extends APIResponse
                 "year_y" => $result[0]["YEAR_Y"],
                 "result" => $resultArr
             ];
+        }
+    }
+
+    private function RetrieveIntegration($db)
+    {
+        $resultArr = [];
+        $query = "SELECT DISTINCT CAH_NAME FROM test_data";
+        //$parameter = ["year" => $year];
+        $result = $db->executeSQL($query)->fetchAll();
+        if(!empty($result))
+        {
+            foreach($result as $data){
+                array_push($resultArr, [$data["CAH_NAME"]]);
+            }
+            return $resultArr;
         }
     }
 
