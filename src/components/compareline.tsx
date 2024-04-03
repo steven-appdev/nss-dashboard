@@ -90,7 +90,8 @@ export default function CompareLine({comparison}:Props){
                     },
                     titleFont: {
                         size: 16
-                    }
+                    },
+                    boxPadding: 2
                 }
             },
             scales:{

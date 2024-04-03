@@ -77,7 +77,7 @@ export default function Options({ onChange }: Props) {
 
    return (
       <div className="flex flex-col w-full px-10">
-         <div className="grid grid-cols-4 gap-6 pb-3">
+         <div className="grid grid-cols-4 gap-6 pb-3 vpx-5">
             <div className="flex flex-col">
                <label className="text-slate-100 font-medium text-left">Year</label>
                <select

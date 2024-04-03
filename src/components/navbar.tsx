@@ -14,13 +14,13 @@ export default function Navbar() {
                   Data Overview
                </NavLink>
                <NavLink
-                  to="compare"
+                  to="/compare"
                   className="text-slate-300 hover:text-slate-50 transition-colors font-semibold"
                >
                   Comparative View
                </NavLink>
                <NavLink
-                  to="integrate"
+                  to="/integrate"
                   className="text-slate-300 hover:text-slate-50 transition-colors font-semibold"
                >
                   Integrate Data
