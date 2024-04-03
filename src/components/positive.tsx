@@ -62,7 +62,6 @@ export default function Positive({
 
    const handleClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
       setSelectedQuestion(event.currentTarget.id);
-      console.log(event.currentTarget.id)
    };
 
    return (

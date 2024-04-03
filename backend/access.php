@@ -39,7 +39,7 @@ class Access extends APIResponse
                     $result = $this->RetrieveCompare($db, $_REQUEST['yearx'], $_REQUEST['populationx'], $_REQUEST['modex'], $_REQUEST['levelx'], $_REQUEST['providerx'],$_REQUEST['subjectx'],
                                                      $_REQUEST['yeary'], $_REQUEST['populationy'], $_REQUEST['modey'], $_REQUEST['levely'], $_REQUEST['providery'],$_REQUEST['subjecty']);
                 }else if(isset($_REQUEST['integration'])){
-                    $result = $this->RetrieveIntegration($db);
+                    $result = $this->RetrieveIntegration($db, $_REQUEST['year']);
                 }
                 $this->setResponse($result);
             }
@@ -69,7 +69,7 @@ class Access extends APIResponse
         $result = "";
         $file = fopen($file,"r");
         $query = "INSERT INTO test_data 
-                    (NUM, POPULATION, UKPRN, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, SUBJECT_LEVEL, 
+                    (YEAR, NUM, POPULATION, UKPRN, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, SUBJECT_LEVEL, 
                     CAH_CODE, CAH_NAME, QUESTION_NUMBER, NUMBER_RESPONSES, NUMBER_POPULATION, SUPPRESSION_REASON, 
                     OPTION1, OPTION2, OPTION3, OPTION4, OPTION5, NOT_APPLICABLE, POSITIVITY_MEASURE, STANDARD_DEVIATION, 
                     BENCHMARK, DIFFERENCE, contr_benchmark, MATERIALLY_BELOW_BENCH, INLINE_WITH_BENCH, MATERIALLY_ABOVE_BENCH, 
@@ -82,7 +82,7 @@ class Access extends APIResponse
                     INDICATOR_LOWERCI80, INDICATOR_LOWERCI77, INDICATOR_LOWERCI75, INDICATOR_UPPERCI99, INDICATOR_UPPERCI97, 
                     INDICATOR_UPPERCI95, INDICATOR_UPPERCI92, INDICATOR_UPPERCI90, INDICATOR_UPPERCI87, INDICATOR_UPPERCI85, 
                     INDICATOR_UPPERCI82, INDICATOR_UPPERCI80, INDICATOR_UPPERCI77, INDICATOR_UPPERCI75, PUB_RESPONSE_HEADCOUNT, PUB_RESPRATE)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         while(($line = fgetcsv($file))!== FALSE){
             foreach($line as $key => $value){
                 if($value === "NULL")
@@ -532,12 +532,12 @@ class Access extends APIResponse
         }
     }
 
-    private function RetrieveIntegration($db)
+    private function RetrieveIntegration($db, $year)
     {
         $resultArr = [];
-        $query = "SELECT DISTINCT CAH_NAME FROM test_data";
-        //$parameter = ["year" => $year];
-        $result = $db->executeSQL($query)->fetchAll();
+        $query = "SELECT DISTINCT CAH_NAME FROM test_data WHERE year = :year";
+        $parameter = ["year" => $year];
+        $result = $db->executeSQL($query, $parameter)->fetchAll();
         if(!empty($result))
         {
             foreach($result as $data){

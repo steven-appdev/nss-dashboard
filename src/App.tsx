@@ -9,9 +9,9 @@ export default function App() {
    return (
       <HashRouter>
          <Routes>
-            <Route path="/" element={<Overview/>}/>
-            <Route path="compare" element={<Comparative />}/>
-            <Route path="integrate" element={<Integration />}/>
+            <Route path="/" element={<Overview />} />
+            <Route path="compare" element={<Comparative />} />
+            <Route path="integrate" element={<Integration />} />
          </Routes>
       </HashRouter>
    );

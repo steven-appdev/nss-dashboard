@@ -127,6 +127,10 @@ interface ICompare {
    result: ICompareResult[];
 }
 
+interface IErrorResponse {
+   message: string;
+}
+
 export type {
    IProvider,
    IQuestion,
@@ -145,5 +149,6 @@ export type {
    ICompareOption,
    IHistory,
    ICompareResult,
-   ICompare
+   ICompare,
+   IErrorResponse
 };

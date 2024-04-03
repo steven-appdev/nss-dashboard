@@ -1,7 +1,6 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
-import { IYear } from "../interfaces";
-import { upload } from "@testing-library/user-event/dist/upload";
+import { IErrorResponse, IYear } from "../interfaces";
 
 export default function IntegrateForm() {
    const api = axios.create({
@@ -12,16 +11,23 @@ export default function IntegrateForm() {
    const [statusClass, setStatusClass] = useState<string>("hidden");
    const [statusMsg, setStatusMsg] = useState<string>("null");
    const [years, setYears] = useState<IYear[]>([]);
+   const [lastAvailableYear, setLastAvailableYear] = useState<number>(0);
    const [uploadedFile, setUploadedFile] = useState<File>();
    const [selectedYear, setSelectedYear] = useState<string>();
+   const [buttonEnabled, setButtonEnabled] = useState<boolean>(false);
 
    useEffect(() => {
       const fetchYears = async () => {
          let response = await api.get<IYear[]>("?years");
-         setYears(response.data);
+         setYears(response.data)
+         const poppedYear = response.data.slice(-1)[0].year
+         if(poppedYear){
+            setLastAvailableYear(poppedYear+1)
+            setSelectedYear(String(poppedYear+1))
+         }
       };
       fetchYears();
-   });
+   }, []);
 
    useEffect(() => {
       switch (status) {
@@ -54,32 +60,47 @@ export default function IntegrateForm() {
 
    const handleOnSubmit = (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault()
+      setButtonEnabled(true)
+      setStatus("hide")
       if(selectedYear || uploadedFile){
          if (uploadedFile) {
             if(uploadedFile.type !== "text/csv"){
-               setStatusMsg("ERROR: The uploading file must be in CSV format!")
+               setStatusMsg("Opps! The uploading file must be in CSV format!")
                setStatus("fail")
+               setButtonEnabled(false)
             }
             else
             {
                const data = new FormData();
-               if(selectedYear && uploadedFile)
-               {
+               if(uploadedFile){
+                  data.append('year', String(selectedYear))
                   data.append('file', uploadedFile)
                }
 
                const fetchYears = async () => {
-                  let response = await axios.post("http://127.0.0.1/:5000/process",data);
-                  console.log(response)
+                  try{
+                     await axios.post("http://127.0.0.1:5000/process",data, {
+                        headers: {
+                           "Content-Type": "multipart/form-data",
+                        },
+                     })
+                     setStatusMsg("File uploaded successfully!")
+                     setStatus("success")
+                  }catch(e){
+                     const err = (e as AxiosError).response?.data as IErrorResponse 
+                     setStatusMsg(err.message)
+                     setStatus("fail")
+                  }finally{
+                     setButtonEnabled(false)
+                  }
                }
                fetchYears();
             }
          }
       }else{
-         setStatusMsg("ERROR: File upload cannot be blank!")
+         setStatusMsg("Opps! File upload cannot be blank!")
          setStatus("fail")
       }
-      
    };
 
    return (
@@ -97,7 +118,7 @@ export default function IntegrateForm() {
                   name="year"
                   onChange={handleOptionChange}
                >
-                  <option value="new">Add into a new year...</option>
+                  <option value={lastAvailableYear}>Add into a new year...</option>
                   {years.map((year) => (
                      <option value={year.year}>{year.year}</option>
                   ))}
@@ -125,7 +146,8 @@ export default function IntegrateForm() {
             </div>
             <button
                type="submit"
-               className="mt-8 py-2 !bg-blue-500 hover:!bg-blue-600 transition-colors text-white font-bold rounded-sm shadow-lg"
+               className="mt-8 py-2 !bg-blue-500 hover:!bg-blue-600 transition-colors text-white font-bold rounded-sm shadow-lg disabled:!bg-slate-500"
+               disabled={buttonEnabled}
             >
                Upload
             </button>
