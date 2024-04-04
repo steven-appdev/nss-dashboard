@@ -131,6 +131,17 @@ interface IErrorResponse {
    message: string;
 }
 
+interface ICurrentData {
+   year: number;
+   available: number;
+   subject: number;
+}
+
+interface IAvailable {
+   subject: string;
+   available: number;
+}
+
 export type {
    IProvider,
    IQuestion,
@@ -150,5 +161,7 @@ export type {
    IHistory,
    ICompareResult,
    ICompare,
-   IErrorResponse
+   IErrorResponse,
+   ICurrentData,
+   IAvailable
 };

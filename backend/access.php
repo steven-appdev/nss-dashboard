@@ -38,8 +38,19 @@ class Access extends APIResponse
                 }else if(isset($_REQUEST['compare'])){
                     $result = $this->RetrieveCompare($db, $_REQUEST['yearx'], $_REQUEST['populationx'], $_REQUEST['modex'], $_REQUEST['levelx'], $_REQUEST['providerx'],$_REQUEST['subjectx'],
                                                      $_REQUEST['yeary'], $_REQUEST['populationy'], $_REQUEST['modey'], $_REQUEST['levely'], $_REQUEST['providery'],$_REQUEST['subjecty']);
+                }else if(isset($_REQUEST['current'])){
+                    $result = $this->RetrieveCurrentData($db);
+                }else if(isset($_REQUEST['available'])){
+                    $result = $this->RetrieveAvailableSubjects($db, $_REQUEST['year']);
                 }else if(isset($_REQUEST['integration'])){
                     $result = $this->RetrieveIntegration($db, $_REQUEST['year']);
+                }else if(isset($_REQUEST['delete'])){
+                    try{
+                        $result = $this->DeleteData($db, $_REQUEST['year'], $_REQUEST['subject']);
+                    }
+                    catch(Exception $e){
+                        $result = $this->showError(404);
+                    }
                 }
                 $this->setResponse($result);
             }
@@ -68,7 +79,7 @@ class Access extends APIResponse
     {
         $result = "";
         $file = fopen($file,"r");
-        $query = "INSERT INTO test_data 
+        $query = "INSERT INTO nss_data 
                     (YEAR, NUM, POPULATION, UKPRN, PROVIDER_NAME, MODE_OF_STUDY, LEVEL_OF_STUDY, SUBJECT_LEVEL, 
                     CAH_CODE, CAH_NAME, QUESTION_NUMBER, NUMBER_RESPONSES, NUMBER_POPULATION, SUPPRESSION_REASON, 
                     OPTION1, OPTION2, OPTION3, OPTION4, OPTION5, NOT_APPLICABLE, POSITIVITY_MEASURE, STANDARD_DEVIATION, 
@@ -94,6 +105,18 @@ class Access extends APIResponse
         }
         fclose($file);
         return $result;      
+    }
+
+    private function DeleteData($db, $year, $subject)
+    {
+        $query = "DELETE FROM nss_data WHERE YEAR = :year AND CAH_NAME = :subject";
+        $parameter = ["year" => $year, "subject" => $subject];
+        $result = $db->executeSQL($query, $parameter);
+        if($result->rowCount() == 0){
+            throw new Exception();
+        }else{
+            return $result;
+        }
     }
 
     private function RetrieveAllProviders($db, $year)
@@ -535,13 +558,49 @@ class Access extends APIResponse
     private function RetrieveIntegration($db, $year)
     {
         $resultArr = [];
-        $query = "SELECT DISTINCT CAH_NAME FROM test_data WHERE year = :year";
+        $query = "SELECT DISTINCT CAH_NAME FROM nss_data WHERE year = :year";
         $parameter = ["year" => $year];
         $result = $db->executeSQL($query, $parameter)->fetchAll();
         if(!empty($result))
         {
             foreach($result as $data){
                 array_push($resultArr, [$data["CAH_NAME"]]);
+            }
+            return $resultArr;
+        }
+    }
+
+    private function RetrieveCurrentData($db)
+    {
+        $resultArr = [];
+        $query = "SELECT YEAR, COUNT(*) AS AVAILABLE_ROW, COUNT(DISTINCT CAH_NAME) AS SUBJECT_NUM FROM `nss_data` GROUP BY YEAR";
+        $result = $db->executeSQL($query)->fetchAll();
+        if(!empty($result))
+        {
+            foreach($result as $data){
+                array_push($resultArr, [
+                    "year" => $data["YEAR"],
+                    "available" => $data["AVAILABLE_ROW"],
+                    "subject" => $data["SUBJECT_NUM"]
+                ]);
+            }
+            return $resultArr;
+        }
+    }
+
+    private function RetrieveAvailableSubjects($db, $year)
+    {
+        $resultArr = [];
+        $query = "SELECT DISTINCT(CAH_NAME), COUNT(*) AS AVAILABLE_ROW FROM `nss_data` WHERE YEAR = :year GROUP BY CAH_NAME";
+        $parameter = ["year" => $year];
+        $result = $db->executeSQL($query, $parameter)->fetchAll();
+        if(!empty($result))
+        {
+            foreach($result as $data){
+                array_push($resultArr, [
+                    "subject" => $data["CAH_NAME"],
+                    "available" => $data["AVAILABLE_ROW"]
+                ]);
             }
             return $resultArr;
         }

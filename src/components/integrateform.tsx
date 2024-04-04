@@ -1,14 +1,20 @@
 import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { IErrorResponse, IYear } from "../interfaces";
+import Error from "./error";
 
-export default function IntegrateForm() {
+interface Props {
+   seed:number
+   modalState:number
+   onSuccess?:(seed:number) => void
+}
+
+export default function IntegrateForm({seed, modalState, onSuccess}:Props) {
    const api = axios.create({
       baseURL: "https://w20003691.nuwebspace.co.uk/api/access",
    });
 
    const [status, setStatus] = useState<string>("hide");
-   const [statusClass, setStatusClass] = useState<string>("hidden");
    const [statusMsg, setStatusMsg] = useState<string>("null");
    const [years, setYears] = useState<IYear[]>([]);
    const [lastAvailableYear, setLastAvailableYear] = useState<number>(0);
@@ -27,26 +33,7 @@ export default function IntegrateForm() {
          }
       };
       fetchYears();
-   }, []);
-
-   useEffect(() => {
-      switch (status) {
-         case "success":
-            return setStatusClass(
-               "flex flex-row bg-green-600 px-5 py-2 rounded-sm text-slate-100 text-left font-semibold shadow-lg"
-            );
-         case "fail":
-            return setStatusClass(
-               "flex flex-row bg-red-700 px-5 py-2 rounded-sm text-slate-100 text-left font-semibold shadow-lg"
-            );
-         case "hide":
-            return setStatusClass("hidden");
-      }
-   }, [status]);
-
-   const handleCloseStatus = (event: React.MouseEvent<HTMLElement>) => {
-      setStatus("hide")
-   };
+   }, [seed, modalState]);
 
    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (event.target.files) {
@@ -86,6 +73,9 @@ export default function IntegrateForm() {
                      })
                      setStatusMsg("File uploaded successfully!")
                      setStatus("success")
+                     if(onSuccess){
+                        onSuccess(Math.random())
+                     }
                   }catch(e){
                      const err = (e as AxiosError).response?.data as IErrorResponse 
                      setStatusMsg(err.message)
@@ -138,12 +128,7 @@ export default function IntegrateForm() {
                   Accept CSV format only (Max: 2MB)
                </p>
             </div>
-            <div className={statusClass}>
-               <div className="w-full">
-                  <p>{statusMsg}</p>
-               </div>
-               <button type="button" onClick={handleCloseStatus}>x</button>
-            </div>
+            <Error display={status} message={statusMsg} onClose={setStatus}/>
             <button
                type="submit"
                className="mt-8 py-2 !bg-blue-500 hover:!bg-blue-600 transition-colors text-white font-bold rounded-sm shadow-lg disabled:!bg-slate-500"

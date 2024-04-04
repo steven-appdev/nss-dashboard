@@ -46,6 +46,11 @@ class APIResponse
             case 501:
                 http_response_code($errorCode);
                 return array("Message" => "Sorry! Request method not found");
+
+            //No row affected
+            case 404:
+                http_response_code($errorCode);
+                return array("message" => "Something went wrong! No row has been affected!");
         }
     }
 }
