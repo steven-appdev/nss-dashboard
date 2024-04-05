@@ -122,7 +122,7 @@ class Access extends APIResponse
     private function RetrieveAllProviders($db, $year)
     {
         $resultArr = [];
-        $query = "SELECT DISTINCT PROVIDER_NAME FROM nss_data WHERE YEAR = :year";
+        $query = "SELECT DISTINCT PROVIDER_NAME FROM nss_data WHERE YEAR = :year ORDER BY PROVIDER_NAME ASC";
         $parameter = ["year" => $year];
         $result = $db->executeSQL($query, $parameter)->fetchAll();
         if(!empty($result))

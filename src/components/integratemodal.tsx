@@ -24,6 +24,7 @@ export default function IntegrateModal({display = false, selectedYear = "", onCl
     const onCloseClick = () => {
         if(onClose){
             onClose(false)
+            setStatus("hide")
         }
     }
 
@@ -54,11 +55,11 @@ export default function IntegrateModal({display = false, selectedYear = "", onCl
                 if(response.data)
                 {
                     setAvailable(response.data)
-                    setStatus("hide")
                 }else{
                     if(onClose){
                         onClose(false)
                     }
+                    setStatus("hide")
                 }
                 setLoading(false)
             }
@@ -76,13 +77,13 @@ export default function IntegrateModal({display = false, selectedYear = "", onCl
                         </div>
                         <button type="button" className="px-5 text-xl h-full hover:!bg-slate-700 transition-colors rounded-tr-lg" onClick={onCloseClick}>x</button>
                     </div>
-                    <div className={`mx-10 mt-5 ${(status === "hide")?"hidden":"block"}`}>
+                    <div className={`mx-5 mt-5 ${(status === "hide")?"hidden":"block"}`}>
                         <Error display={status} message={statusMsg} onClose={setStatus}/>
                     </div>
                     <div className={`h-[50%] w-full py-10 items-center justify-center ${isLoading?"flex":"hidden"}`}>
                         <img className="w-[100px] h-[100px]" src={loading} />
                     </div>
-                    <div className={`${isLoading?"hidden":"flex-1"} mx-10 mt-5 mb-6 overflow-scroll overflow-x-hidden border border-slate-300 rounded-md shadow-md`}>
+                    <div className={`${isLoading?"hidden":"flex-1"} m-5 overflow-scroll overflow-x-hidden border border-slate-300 rounded-md shadow-md`}>
                         <table className="text-md w-full">
                             <thead>
                             <tr className="bg-slate-300 sticky top-0">
