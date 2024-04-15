@@ -66,7 +66,7 @@ export default function History({ option, question }: IOption){
                         data: response.data.map((data) => data.positivity),
                         borderColor: 'rgb(75, 192, 192)',
                         fill: false,
-                        pointRadius: 3,
+                        pointRadius: 5,
                         pointBackgroundColor: 'rgb(75, 192, 192)'
                     },
                     {
@@ -74,8 +74,9 @@ export default function History({ option, question }: IOption){
                         data: response.data.map((data) => data.benchmark),
                         borderColor: 'rgb(248,113,113)',
                         fill: false,
-                        pointRadius: 3,
-                        pointBackgroundColor: 'rgb(248,113,113)'
+                        pointRadius: 6,
+                        pointBackgroundColor: 'rgb(248,113,113)',
+                        pointStyle: "triangle"
                     }
                 ]
             })
