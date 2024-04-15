@@ -20,7 +20,7 @@ export default function IntegrateForm({seed, modalState, onSuccess}:Props) {
    const [lastAvailableYear, setLastAvailableYear] = useState<number>(0);
    const [uploadedFile, setUploadedFile] = useState<File>();
    const [selectedYear, setSelectedYear] = useState<string>();
-   const [buttonEnabled, setButtonEnabled] = useState<boolean>(false);
+   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
    useEffect(() => {
       const fetchYears = async () => {
@@ -47,14 +47,16 @@ export default function IntegrateForm({seed, modalState, onSuccess}:Props) {
 
    const handleOnSubmit = (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault()
-      setButtonEnabled(true)
+      setButtonDisabled(true)
       setStatus("hide")
-      if(selectedYear || uploadedFile){
+      console.log(selectedYear)
+      console.log(uploadedFile)
+      if(selectedYear && uploadedFile){
          if (uploadedFile) {
             if(uploadedFile.type !== "text/csv"){
                setStatusMsg("Opps! The uploading file must be in CSV format!")
                setStatus("fail")
-               setButtonEnabled(false)
+               setButtonDisabled(false)
             }
             else
             {
@@ -66,7 +68,7 @@ export default function IntegrateForm({seed, modalState, onSuccess}:Props) {
 
                const fetchYears = async () => {
                   try{
-                     await axios.post("http://127.0.0.1:5000/process",data, {
+                     await axios.post("https://nunss-int-api.azurewebsites.net/process",data, {
                         headers: {
                            "Content-Type": "multipart/form-data",
                         },
@@ -81,7 +83,7 @@ export default function IntegrateForm({seed, modalState, onSuccess}:Props) {
                      setStatusMsg(err.message)
                      setStatus("fail")
                   }finally{
-                     setButtonEnabled(false)
+                     setButtonDisabled(false)
                   }
                }
                fetchYears();
@@ -90,6 +92,7 @@ export default function IntegrateForm({seed, modalState, onSuccess}:Props) {
       }else{
          setStatusMsg("Opps! File upload cannot be blank!")
          setStatus("fail")
+         setButtonDisabled(false)
       }
    };
 
@@ -132,7 +135,7 @@ export default function IntegrateForm({seed, modalState, onSuccess}:Props) {
             <button
                type="submit"
                className="mt-8 py-2 !bg-blue-500 hover:!bg-blue-600 transition-colors text-white font-bold rounded-sm shadow-lg disabled:!bg-slate-500"
-               disabled={buttonEnabled}
+               disabled={buttonDisabled}
             >
                Upload
             </button>

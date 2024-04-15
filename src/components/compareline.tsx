@@ -5,9 +5,10 @@ import { Line } from "react-chartjs-2";
 
 interface Props {
     comparison: ICompare 
+    mode: string
 }
 
-export default function CompareLine({comparison}:Props){
+export default function CompareLine({comparison, mode}:Props){
     const [data, setData] = useState<ChartData<"line">>({
         labels: ["null"],
         datasets: []
@@ -25,7 +26,7 @@ export default function CompareLine({comparison}:Props){
             datasets: [
                 {
                     label: comparison.provider_x,
-                    data: comparison.result.map((data) => data.positive_x),
+                    data: (mode === "positivity") ? comparison.result.map((data) => data.positive_x) : comparison.result.map((data) => data.benchmark_x),
                     borderColor: 'rgb(75, 192, 192)',
                     fill: false,
                     pointRadius: 5,
@@ -33,7 +34,7 @@ export default function CompareLine({comparison}:Props){
                 },
                 {
                     label: comparison.provider_y,
-                    data: comparison.result.map((data) => data.positive_y),
+                    data: (mode === "positivity") ? comparison.result.map((data) => data.positive_y) : comparison.result.map((data) => data.benchmark_y),
                     borderColor: 'rgb(248,113,113)',
                     fill: false,
                     pointRadius: 7,
